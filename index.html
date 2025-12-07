@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KidsNeed – Nachspuren ✍️</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(to bottom, #e8f4f8 0%, #d4e9f2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container { max-width: 640px; width: 100%; }
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 24px 24px 28px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      position: relative;
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      left: 0; right: 0; top: 0;
+      height: 4px;
+      border-radius: 20px 20px 0 0;
+      background: linear-gradient(90deg, #6ba3d4 0%, #7bc8a4 100%);
+    }
+    .header { text-align: center; margin-bottom: 20px; }
+    .title { font-size: 1.7rem; margin: 0 0 6px; color: #1f2933; font-weight: 700; }
+    .subtitle { margin: 0; font-size: .95rem; color: #6b7280; }
+
+    .mode-row { display: flex; gap: 8px; margin: 18px 0 10px; flex-wrap: wrap; }
+    .mode-chip {
+      flex: 1;
+      min-width: 120px;
+      border-radius: 999px;
+      border: 2px solid #e2e8f0;
+      padding: 8px 12px;
+      background: #f7fafc;
+      font-size: .9rem;
+      font-weight: 600;
+      color: #4b5563;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all .18s ease;
+    }
+    .mode-chip span { font-size: 1.2rem; }
+    .mode-chip.active {
+      background: #6ba3d4;
+      border-color: #6ba3d4;
+      color: #fff;
+    }
+
+    .current-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 8px 0 14px;
+      flex-wrap: wrap;
+    }
+    .nav-btn {
+      border: none;
+      border-radius: 999px;
+      background: #e5edf5;
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: background .15s ease, transform .08s ease;
+    }
+    .nav-btn:active { transform: scale(0.95); }
+    .nav-btn:hover { background: #d4e1f0; }
+
+    .current-label { font-size: .9rem; color: #6b7280; text-align: center; }
+    .current-big {
+      min-width: 72px;
+      min-height: 72px;
+      border-radius: 18px;
+      background: #f1f5f9;
+      border: 2px dashed #d0d7e2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: #1f2933;
+    }
+
+    .canvas-wrap {
+      margin: 10px 0 14px;
+      border-radius: 18px;
+      background: #fefcf5;
+      border: 2px solid #f5e6d3;
+      padding: 12px;
+    }
+    .canvas-label {
+      font-size: .85rem;
+      color: #9ca3af;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .canvas-label strong { color: #4b5563; }
+
+    .canvas-inner {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+    }
+    #traceCanvas {
+      display: block;
+      width: 100%;
+      max-width: 360px;
+      margin: 0 auto;
+      touch-action: none;
+      background: radial-gradient(circle at top, #fef9f3 0, #fff 45%, #f9fafb 100%);
+    }
+
+    .tip {
+      font-size: .85rem;
+      color: #6b7280;
+      text-align: center;
+      margin: 6px 0 10px;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      flex: 1;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 16px;
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background .18s ease, transform .08s ease, box-shadow .18s ease;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: #6ba3d4;
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(107,163,212,.35);
+    }
+    .btn-primary:hover { background: #5a92c3; }
+    .btn-secondary {
+      background: #e5edf5;
+      color: #374151;
+    }
+    .btn-secondary:hover { background: #d4e1f0; }
+
+    .meta-row {
+      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: .8rem;
+      color: #6b7280;
+    }
+    .chip {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #edf2f7;
+    }
+
+    @media (max-width: 600px) {
+      .card { padding: 20px 16px 22px; }
+      .title { font-size: 1.45rem; }
+      .current-big { min-width: 64px; min-height: 64px; font-size: 2.1rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="header">
+        <h1 class="title">Nachspuren ✍️</h1>
+        <p class="subtitle">Buchstaben und Zahlen in Ruhe nachzeichnen – ideal für Tablet & Stift</p>
+      </div>
+
+      <div class="mode-row" id="modeRow">
+        <button class="mode-chip active" data-mode="letters"><span>🔤</span><span>Buchstaben</span></button>
+        <button class="mode-chip" data-mode="numbers"><span>🔢</span><span>Zahlen</span></button>
+      </div>
+
+      <div class="current-row">
+        <button class="nav-btn" id="prevBtn" aria-label="Vorherige Vorlage">◀</button>
+        <div>
+          <div class="current-label" id="currentLabel">Aktueller Buchstabe</div>
+          <div class="current-big" id="currentBig">A</div>
+        </div>
+        <button class="nav-btn" id="nextBtn" aria-label="Nächste Vorlage">▶</button>
+      </div>
+
+      <div class="canvas-wrap">
+        <div class="canvas-label">
+          <span><strong>Spurfläche</strong> – mit Finger oder Stift nachzeichnen</span>
+          <span style="font-size:.8rem;">Tipp: Bildschirm nicht zu klein zoomen</span>
+        </div>
+        <div class="canvas-inner">
+          <canvas id="traceCanvas" width="360" height="360"></canvas>
+        </div>
+      </div>
+
+      <p class="tip" id="tipText">
+        Erst die helle Vorlage anschauen, dann langsam in derselben Richtung nachspuren.
+      </p>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" id="clearBtn">🧽 Neu nachspuren</button>
+        <button class="btn btn-primary" id="strokeToggle">✏️ Strich dicker/dünner</button>
+      </div>
+
+      <div class="meta-row">
+        <div class="chip">👆 Einmal tippen zum Zeichnen, loslassen zum Stoppen.</div>
+        <div class="chip">📱 Am besten im Vollbild (Homescreen/„Zum Startbildschirm hinzufügen“).</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Mini-App: Nachspuren ---
+    const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+    const NUMBERS = "0123456789".split("");
+
+    let mode = "letters";
+    let index = 0;
+    let thickStroke = true;
+
+    const modeRow      = document.getElementById("modeRow");
+    const prevBtn      = document.getElementById("prevBtn");
+    const nextBtn      = document.getElementById("nextBtn");
+    const currentLabel = document.getElementById("currentLabel");
+    const currentBig   = document.getElementById("currentBig");
+    const tipText      = document.getElementById("tipText");
+
+    const canvas = document.getElementById("traceCanvas");
+    const ctx    = canvas.getContext("2d");
+
+    let drawing = false;
+    let lastX = 0;
+    let lastY = 0;
+
+    function getCurrentList(){
+      return mode === "numbers" ? NUMBERS : LETTERS;
+    }
+
+    function updateCurrent(){
+      const list = getCurrentList();
+      if(index < 0) index = list.length - 1;
+      if(index >= list.length) index = 0;
+      const char = list[index];
+      currentBig.textContent = char;
+      currentLabel.textContent = mode === "numbers" ? "Aktuelle Zahl" : "Aktueller Buchstabe";
+      tipText.textContent = mode === "numbers"
+        ? "Sprich die Zahl laut mit, während du sie nachspurst."
+        : "Sprich den Buchstaben laut mit, während du ihn nachspurst.";
+      drawTemplate();
+    }
+
+    function clearDrawingLayer(keepTemplate){
+      if(!keepTemplate){
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawTemplate();
+        return;
+      }
+      // Nur die Benutzerstriche "überschreiben":
+      // Wir zeichnen einfach die Vorlage neu über die gesamte Fläche.
+      const char = currentBig.textContent || "A";
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawTemplate(char);
+    }
+
+    function drawTemplate(){
+      const char = currentBig.textContent || "A";
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // sanfter Hintergrund
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Rand
+      ctx.strokeStyle = "#e5e7eb";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(8, 8, canvas.width - 16, canvas.height - 16);
+
+      // Hilfslinien (Schreiblinien)
+      ctx.strokeStyle = "rgba(148, 163, 184, .45)";
+      ctx.lineWidth = 1;
+      const topLine    = canvas.height * 0.3;
+      const middleLine = canvas.height * 0.5;
+      const baseLine   = canvas.height * 0.7;
+      [topLine, middleLine, baseLine].forEach(y => {
+        ctx.beginPath();
+        ctx.setLineDash(y === middleLine ? [6,4] : [2,6]);
+        ctx.moveTo(20, y);
+        ctx.lineTo(canvas.width - 20, y);
+        ctx.stroke();
+      });
+      ctx.setLineDash([]);
+
+      // Vorlage (hell)
+      ctx.save();
+      ctx.font = (canvas.width * 0.5) + "px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.strokeStyle = "#e5e7eb";
+      ctx.lineWidth = 10;
+      ctx.globalAlpha = 0.9;
+      ctx.strokeText(char, canvas.width / 2, canvas.height / 2 + canvas.height * 0.05);
+      ctx.restore();
+    }
+
+    function getCanvasPos(evt){
+      const rect = canvas.getBoundingClientRect();
+      const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+      const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      return {
+        x: x * scaleX,
+        y: y * scaleY
+      };
+    }
+
+    function startDraw(evt){
+      evt.preventDefault();
+      const pos = getCanvasPos(evt);
+      drawing = true;
+      lastX = pos.x;
+      lastY = pos.y;
+    }
+
+    function draw(evt){
+      if(!drawing) return;
+      evt.preventDefault();
+      const pos = getCanvasPos(evt);
+      ctx.save();
+      ctx.lineJoin = "round";
+      ctx.lineCap = "round";
+      ctx.strokeStyle = "#2563eb"; // ruhig-blau
+      ctx.lineWidth = thickStroke ? 11 : 7;
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+      ctx.restore();
+      lastX = pos.x;
+      lastY = pos.y;
+    }
+
+    function endDraw(evt){
+      if(!drawing) return;
+      drawing = false;
+      if(evt) evt.preventDefault();
+    }
+
+    // Pointer/Touch Events
+    canvas.addEventListener("pointerdown", startDraw);
+    canvas.addEventListener("pointermove", draw);
+    canvas.addEventListener("pointerup", endDraw);
+    canvas.addEventListener("pointerleave", endDraw);
+
+    // Fallback für ältere Browser (optional)
+    canvas.addEventListener("touchstart", startDraw, { passive: false });
+    canvas.addEventListener("touchmove", draw, { passive: false });
+    canvas.addEventListener("touchend", endDraw, { passive: false });
+
+    // UI Events
+    modeRow.addEventListener("click", (e) => {
+      const btn = e.target.closest(".mode-chip");
+      if(!btn) return;
+      const newMode = btn.dataset.mode;
+      if(newMode === mode) return;
+      mode = newMode;
+      index = 0;
+      document.querySelectorAll(".mode-chip").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      updateCurrent();
+    });
+
+    prevBtn.addEventListener("click", () => {
+      index--;
+      updateCurrent();
+    });
+
+    nextBtn.addEventListener("click", () => {
+      index++;
+      updateCurrent();
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      drawTemplate();
+    });
+
+    document.getElementById("strokeToggle").addEventListener("click", () => {
+      thickStroke = !thickStroke;
+      const label = thickStroke ? "✏️ Strich dicker/dünner" : "✏️ Dünner Strich aktiv";
+      document.getElementById("strokeToggle").textContent = label;
+    });
+
+    // Beim ersten Laden Vorlage zeichnen
+    updateCurrent();
+
+    // Canvas bei Orientation- / Layoutwechsel sanft neu zeichnen
+    window.addEventListener("resize", () => {
+      // kurze Verzögerung, damit das Layout sich setzen kann
+      clearTimeout(window.__traceResizeTimer);
+      window.__traceResizeTimer = setTimeout(() => {
+        drawTemplate();
+      }, 150);
+    });
+  </script>
+</body>
+</html>
