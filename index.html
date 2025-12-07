@@ -431,66 +431,79 @@
     }
 
     function drawGuidelinesAndLetter() {
-      const w = canvas.clientWidth || canvas.width;
-      const h = canvas.clientHeight || canvas.height;
-      if (!w || !h) return;
+  const w = canvas.clientWidth || canvas.width;
+  const h = canvas.clientHeight || canvas.height;
+  if (!w || !h) return;
 
-      // 4-Linien-System wie auf dem Poster
-      ctx.save();
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = "rgba(226,232,240,0.55)";
+  // 4-Linien-System wie auf dem Poster
+  ctx.save();
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = "rgba(226,232,240,0.55)";
 
-      const blockHeight = h * 0.32;
-      const top = (h - blockHeight) / 2;
-      const step = blockHeight / 3;
+  const blockHeight = h * 0.32;
+  const top = (h - blockHeight) / 2;
+  const step = blockHeight / 3;
 
-      const y0 = top;            // Oberlinie
-      const y1 = top + step;     // Mittellinie
-      const y2 = top + 2*step;   // Grundlinie
-      const y3 = top + 3*step;   // Unterlänge
+  const y0 = top;            // Oberlinie
+  const y1 = top + step;     // Mittellinie
+  const y2 = top + 2 * step; // Grundlinie
+  const y3 = top + 3 * step; // Unterlänge
 
-      const xs = { left: w*0.06, right: w*0.94 };
+  const xLeft = w * 0.06;
+  const xRight = w * 0.94;
 
-      [y0, y1, y2, y3].forEach((y, i) => {
-        ctx.beginPath();
-        ctx.setLineDash(i === 0 || i === 3 ? [] : [8,5]);
-        ctx.moveTo(xs.left, y);
-        ctx.lineTo(xs.right, y);
-        ctx.stroke();
-      });
+  [y0, y1, y2, y3].forEach((y, i) => {
+    ctx.beginPath();
+    ctx.setLineDash(i === 0 || i === 3 ? [] : [8, 5]);
+    ctx.moveTo(xLeft, y);
+    ctx.lineTo(xRight, y);
+    ctx.stroke();
+  });
 
-      // Randlinie links
-      ctx.setLineDash([4,6]);
-      ctx.beginPath();
-      ctx.moveTo(w*0.1, y0 - step*0.4);
-      ctx.lineTo(w*0.1, y3 + step*0.4);
-      ctx.stroke();
-      ctx.restore();
+  // Randlinie links
+  ctx.setLineDash([4, 6]);
+  ctx.beginPath();
+  ctx.moveTo(w * 0.1, y0 - step * 0.4);
+  ctx.lineTo(w * 0.1, y3 + step * 0.4);
+  ctx.stroke();
+  ctx.restore();
 
-      if (!showGuide || !currentChar) return;
+  // Leit-Buchstabe auf den Linien
+  if (!showGuide || !currentChar) return;
 
-      // Leitbuchstabe auf den Linien
-      ctx.save();
-      const isDigit = mode === "digits";
-      const up = currentChar.toUpperCase();
-      const drawChar = isDigit ? currentChar : (mode === "lower" ? currentChar.toLowerCase() : up);
+  ctx.save();
+  const isDigit = mode === "digits";
+  let text;
+  let fontSize;
 
-      // Font grob an Distanz Oberlinie–Grundlinie anpassen
-      const capHeight = y2 - y0;
-      const fontSize = capHeight * 1.44; // etwas Luft oben/unten
-      ctx.font = fontSize.toFixed(0) + 'px "Trebuchet MS", system-ui, sans-serif';
-      ctx.textAlign = "center";
-      ctx.textBaseline = "alphabetic";
-      ctx.fillStyle = "rgba(248,250,252,0.9)";
-      ctx.globalAlpha = 0.38;
+  if (isDigit) {
+    // Zahlen einzeln, groß
+    text = currentChar;
+    const fullHeight = y3 - y0;
+    fontSize = fullHeight * 0.75;
+  } else {
+    // wie auf dem Poster: Aa, Bb, Cc ...
+    const up = currentChar.toUpperCase();
+    const low = currentChar.toLowerCase();
+    text = up + " " + low;
 
-      // Grundlinie leicht über y2, damit Unterlängen bis y3 laufen können
-      const baseline = y2 - step * 0.08;
-      const x = w * 0.52;
+    // komplette Vier-Linien-Höhe nutzen, aber mit etwas Luft
+    const fullHeight = y3 - y0;
+    fontSize = fullHeight * 0.70; // hier sitzt der Buchstabe deutlich größer „im Heft“
+  }
 
-      ctx.fillText(drawChar, x, baseline);
-      ctx.restore();
-    }
+  ctx.font = fontSize.toFixed(0) + 'px "Trebuchet MS", system-ui, sans-serif';
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
+
+  const baseline = y2;       // direkt auf die Grundlinie
+  const x = w * 0.5;         // mittig im Feld
+
+  ctx.fillStyle = "rgba(248,250,252,0.95)";
+  ctx.globalAlpha = 0.38;    // leicht durchsichtig, damit Kreide darüber gut sichtbar ist
+  ctx.fillText(text, x, baseline);
+  ctx.restore();
+}
 
     // --- Zeichnen mit „Kreide“ ---
     function getPos(e) {
