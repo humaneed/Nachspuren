@@ -27,7 +27,7 @@
       align-items: stretch;
     }
     .board {
-      background: #14432b; /* Tafel-Grün */
+      background: #14432b;
       border-radius: 24px;
       box-shadow: 0 16px 40px rgba(0,0,0,0.4);
       color: #f9fafb;
@@ -201,6 +201,10 @@
       background: #f97316;
       color: #111827;
     }
+    .btn-check {
+      background: #22c55e;
+      color: #111827;
+    }
 
     .hint-row {
       margin-top: 4px;
@@ -209,6 +213,58 @@
     }
     .hint-strong {
       font-weight: 600;
+    }
+
+    .feedback-box {
+      margin-top: 8px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(15,23,42,0.35);
+      border: 2px solid transparent;
+      min-height: 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: all 0.3s ease;
+    }
+    .feedback-box.hidden {
+      display: none;
+    }
+    .feedback-box.success {
+      background: rgba(34,197,94,0.25);
+      border-color: rgba(34,197,94,0.5);
+    }
+    .feedback-box.partial {
+      background: rgba(251,146,60,0.25);
+      border-color: rgba(251,146,60,0.5);
+    }
+    .feedback-box.try-again {
+      background: rgba(239,68,68,0.25);
+      border-color: rgba(239,68,68,0.5);
+    }
+    .feedback-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .feedback-text {
+      font-size: 0.8rem;
+      line-height: 1.4;
+    }
+    .score-bar {
+      margin-top: 4px;
+      height: 8px;
+      background: rgba(15,23,42,0.4);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .score-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #22c55e, #84cc16);
+      border-radius: 999px;
+      transition: width 0.5s ease;
     }
 
     @media (min-width: 540px) {
@@ -229,7 +285,7 @@
       <div class="board-inner">
         <header class="board-header">
           <div class="title-row">
-            <div class="board-title">Mein Tafel-ABC</div>
+            <div class="board-title">Mein Tafel ABC</div>
             <div class="board-subtitle">Druckschrift · Nachspuren</div>
           </div>
           <div class="abc-row">
@@ -268,7 +324,16 @@
         </div>
         <div class="buttons-row">
           <button id="btnClear" class="btn">🧽 Tafel wischen</button>
+          <button id="btnCheck" class="btn btn-check">✓ Prüfen</button>
           <button id="btnToggleGuide" class="btn">👁 Vorlage aus</button>
+        </div>
+
+        <div id="feedbackBox" class="feedback-box hidden">
+          <div class="feedback-title" id="feedbackTitle"></div>
+          <div class="feedback-text" id="feedbackText"></div>
+          <div class="score-bar">
+            <div class="score-fill" id="scoreFill" style="width: 0%"></div>
+          </div>
         </div>
 
         <div class="hint-row">
@@ -280,38 +345,44 @@
   </div>
 
   <script>
-    // Alphabet (deutsches Druckschrift-ABC + ß)
     const UPPER = "AÄBCDEFGHIJKLMNOÖPQRSTUVWÜXYZ".split("");
     const LOWER = "aäbcdefghijklmnoöpqrstuvwüxyzß".split("");
     const DIGITS = "0123456789".split("");
 
+    // Buchstaben mit Oberlängen (reichen bis zur oberen Linie)
+    const ASCENDERS = new Set(['b', 'd', 'f', 'h', 'k', 'l', 't', 'ß']);
+    // Buchstaben mit Unterlängen (reichen bis zur unteren Linie)
+    const DESCENDERS = new Set(['g', 'j', 'p', 'q', 'y']);
+    // Buchstaben mit Punkten oben
+    const DOTS_ABOVE = new Set(['Ä', 'Ö', 'Ü', 'ä', 'ö', 'ü', 'i', 'j']);
+
     const LETTER_EXAMPLES = {
-      A: "A wie Apfel",
+      A: "A wie Apfel", Ä: "Ä wie Äpfel",
       B: "B wie Ball",
-      C: "C wie Clown",
-      D: "D wie Dino",
-      E: "E wie Ente",
+      C: "C wie Computer",
+      D: "D wie Dinosaurier",
+      E: "E wie Esel",
       F: "F wie Fisch",
-      G: "G wie Giraffe",
-      H: "H wie Haus",
+      G: "G wie Gitarre",
+      H: "H wie Herz",
       I: "I wie Igel",
-      J: "J wie Junge",
-      K: "K wie Katze",
-      L: "L wie Löwe",
-      M: "M wie Maus",
-      N: "N wie Nase",
-      O: "O wie Ohr",
-      P: "P wie Pirat",
+      J: "J wie Jacke",
+      K: "K wie Kerze",
+      L: "L wie Leiter",
+      M: "M wie Haus",
+      N: "N wie Nagel",
+      O: "O wie Ofen", Ö: "Ö wie Öfen",
+      P: "P wie Palme",
       Q: "Q wie Qualle",
-      R: "R wie Regen",
+      R: "R wie Rakete",
       S: "S wie Sonne",
       T: "T wie Tiger",
-      U: "U wie Uhr",
+      U: "U wie Uhr", Ü: "Ü wie Übung",
       V: "V wie Vogel",
-      W: "W wie Wald",
-      X: "X wie Xylofon",
-      Y: "Y wie Yoga",
-      Z: "Z wie Zebra"
+      W: "W wie Wolke",
+      X: "X wie Xylophon",
+      Y: "Y wie Yacht",
+      Z: "Z wie Zeit"
     };
 
     const DIGIT_EXAMPLES = {
@@ -324,7 +395,7 @@
       6: "6 – Sechs Bausteine.",
       7: "7 – Sieben Wochentage.",
       8: "8 – Wie ein Schneemann.",
-      9: "9 – Viele Punkte."
+      9: "9 – Neun Punkte."
     };
 
     const modeButtons = Array.from(document.querySelectorAll(".mode-btn"));
@@ -336,10 +407,15 @@
     const btnNext = document.getElementById("btnNext");
     const btnRandom = document.getElementById("btnRandom");
     const btnClear = document.getElementById("btnClear");
+    const btnCheck = document.getElementById("btnCheck");
     const btnToggleGuide = document.getElementById("btnToggleGuide");
     const colorDots = Array.from(document.querySelectorAll(".color-dot"));
     const exampleHint = document.getElementById("exampleHint");
     const tipHint = document.getElementById("tipHint");
+    const feedbackBox = document.getElementById("feedbackBox");
+    const feedbackTitle = document.getElementById("feedbackTitle");
+    const feedbackText = document.getElementById("feedbackText");
+    const scoreFill = document.getElementById("scoreFill");
 
     let mode = "upper";
     let list = UPPER;
@@ -351,7 +427,6 @@
     let lastY = 0;
     let showGuide = true;
 
-    // --- Modus & Zeichenwahl ---
     function setMode(newMode) {
       mode = newMode;
       if (mode === "upper") list = UPPER;
@@ -396,26 +471,26 @@
       }
 
       updateHints();
+      hideFeedback();
       clearCanvas();
     }
 
     function updateHints() {
       if (mode === "digits") {
         exampleHint.textContent = DIGIT_EXAMPLES[currentChar] || ("Zahl " + currentChar + " schreiben üben.");
-        tipHint.textContent = "Sag die Zahl laut und spure sie langsam nach. Suche dann passende Dinge im Raum.";
+        tipHint.textContent = "Sprich die Zahl laut aus und betrachte ihre Form genau. Fahre sie dann langsam mit dem Finger in der Luft nach, bevor du auf der Tafel schreibst.";
       } else {
         const upper = currentChar.toUpperCase();
         const base = LETTER_EXAMPLES[upper] || (upper + " schreiben üben.");
         exampleHint.textContent = base;
-        tipHint.textContent = "Sprich den Buchstaben laut und spure ihn langsam nach – zuerst groß, dann klein.";
+        tipHint.textContent = "Schau dir beide Buchstaben an: Wo beginnen sie? Welche Richtung nehmen sie? Spure dann langsam nach – erst den großen, dann den kleinen Buchstaben.";
       }
     }
 
-    // --- Tafel-Linien + Leitbuchstabe im Canvas ---
     function resizeCanvas() {
       const rect = canvas.getBoundingClientRect();
       const ratio = window.devicePixelRatio || 1;
-      const targetHeightCss = rect.width * (16 / 9); // 9:16 Hochformat
+      const targetHeightCss = rect.width * (16 / 9);
       canvas.width = rect.width * ratio;
       canvas.height = targetHeightCss * ratio;
       canvas.style.height = targetHeightCss + "px";
@@ -428,84 +503,120 @@
       const h = canvas.clientHeight || canvas.height;
       ctx.clearRect(0, 0, w, h);
       drawGuidelinesAndLetter();
+      hideFeedback();
     }
 
     function drawGuidelinesAndLetter() {
-  const w = canvas.clientWidth || canvas.width;
-  const h = canvas.clientHeight || canvas.height;
-  if (!w || !h) return;
+      const w = canvas.clientWidth || canvas.width;
+      const h = canvas.clientHeight || canvas.height;
+      if (!w || !h) return;
 
-  // 4-Linien-System wie auf dem Poster
-  ctx.save();
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = "rgba(226,232,240,0.55)";
+      // 4-Linien-System wie auf dem Poster
+      ctx.save();
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = "rgba(226,232,240,0.6)";
 
-  const blockHeight = h * 0.32;
-  const top = (h - blockHeight) / 2;
-  const step = blockHeight / 3;
+      // Berechne die 4 Linien genau wie auf dem Poster
+      const lineSpacing = h * 0.09;  // Abstand zwischen den Linien
+      const centerY = h * 0.5;
+      
+      // Die 4 Linien:
+      const line1 = centerY - lineSpacing * 1.5;  // Obere Linie
+      const line2 = centerY - lineSpacing * 0.5;  // Mittellinie (x-Höhe oben)
+      const line3 = centerY + lineSpacing * 0.5;  // Grundlinie
+      const line4 = centerY + lineSpacing * 1.5;  // Untere Linie (Unterlänge)
 
-  const y0 = top;            // Oberlinie
-  const y1 = top + step;     // Mittellinie
-  const y2 = top + 2 * step; // Grundlinie
-  const y3 = top + 3 * step; // Unterlänge
+      const xLeft = w * 0.08;
+      const xRight = w * 0.92;
 
-  const xLeft = w * 0.06;
-  const xRight = w * 0.94;
+      // Zeichne die 4 Linien
+      [line1, line2, line3, line4].forEach((y, i) => {
+        ctx.beginPath();
+        // Obere und untere Linie durchgezogen, mittlere gestrichelt
+        ctx.setLineDash(i === 0 || i === 3 ? [] : [6, 4]);
+        ctx.moveTo(xLeft, y);
+        ctx.lineTo(xRight, y);
+        ctx.stroke();
+      });
 
-  [y0, y1, y2, y3].forEach((y, i) => {
-    ctx.beginPath();
-    ctx.setLineDash(i === 0 || i === 3 ? [] : [8, 5]);
-    ctx.moveTo(xLeft, y);
-    ctx.lineTo(xRight, y);
-    ctx.stroke();
-  });
+      // Randlinie links (gestrichelt)
+      ctx.setLineDash([3, 5]);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(w * 0.12, line1 - lineSpacing * 0.3);
+      ctx.lineTo(w * 0.12, line4 + lineSpacing * 0.3);
+      ctx.stroke();
+      ctx.restore();
 
-  // Randlinie links
-  ctx.setLineDash([4, 6]);
-  ctx.beginPath();
-  ctx.moveTo(w * 0.1, y0 - step * 0.4);
-  ctx.lineTo(w * 0.1, y3 + step * 0.4);
-  ctx.stroke();
-  ctx.restore();
+      // Leit-Buchstaben auf den Linien zeichnen
+      if (!showGuide || !currentChar) return;
 
-  // Leit-Buchstabe auf den Linien
-  if (!showGuide || !currentChar) return;
+      ctx.save();
+      
+      // Verwende eine klare, serifenlose Schrift ähnlich dem Poster
+      const isDigit = mode === "digits";
+      
+      if (isDigit) {
+        // Zahlen: einzeln, zentriert zwischen Oberlinie und Grundlinie
+        const digitHeight = line3 - line1;
+        const fontSize = digitHeight * 0.95;
+        
+        ctx.font = `700 ${fontSize}px Arial, "Helvetica Neue", sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "alphabetic";
+        ctx.fillStyle = "rgba(255,255,255,0.95)";
+        ctx.globalAlpha = 0.32;
+        ctx.fillText(currentChar, w * 0.5, line3);
+        
+      } else {
+        // Buchstaben: Groß- und Kleinbuchstabe wie auf dem Poster
+        const up = currentChar.toUpperCase();
+        const low = currentChar.toLowerCase();
+        
+        // Großbuchstabe: von Oberlinie bis Grundlinie
+        const upperHeight = line3 - line1;
+        const upperFontSize = upperHeight * 0.95;
+        
+        ctx.font = `700 ${upperFontSize}px Arial, "Helvetica Neue", sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "alphabetic";
+        ctx.fillStyle = "rgba(255,255,255,0.95)";
+        ctx.globalAlpha = 0.32;
+        
+        // Großbuchstabe links positionieren
+        const upperX = w * 0.35;
+        ctx.fillText(up, upperX, line3);
+        
+        // Kleinbuchstabe: richtige Höhe je nach Buchstabenart
+        let lowerFontSize, lowerBaseline;
+        
+        if (ASCENDERS.has(low)) {
+          // Oberlängen: von Oberlinie bis Grundlinie
+          lowerFontSize = upperFontSize;
+          lowerBaseline = line3;
+        } else if (DESCENDERS.has(low)) {
+          // Unterlängen: von Mittellinie bis Unterlinie
+          const lowerHeight = line4 - line2;
+          lowerFontSize = lowerHeight * 0.95;
+          lowerBaseline = line4;
+        } else {
+          // Normale Kleinbuchstaben: von Mittellinie bis Grundlinie (x-Höhe)
+          const xHeight = line3 - line2;
+          lowerFontSize = xHeight * 0.95;
+          lowerBaseline = line3;
+        }
+        
+        ctx.font = `700 ${lowerFontSize}px Arial, "Helvetica Neue", sans-serif`;
+        
+        // Kleinbuchstabe rechts positionieren
+        const lowerX = w * 0.65;
+        ctx.fillText(low, lowerX, lowerBaseline);
+      }
+      
+      ctx.restore();
+    }
 
-  ctx.save();
-  const isDigit = mode === "digits";
-  let text;
-  let fontSize;
-
-  if (isDigit) {
-    // Zahlen einzeln, groß
-    text = currentChar;
-    const fullHeight = y3 - y0;
-    fontSize = fullHeight * 0.75;
-  } else {
-    // wie auf dem Poster: Aa, Bb, Cc ...
-    const up = currentChar.toUpperCase();
-    const low = currentChar.toLowerCase();
-    text = up + " " + low;
-
-    // komplette Vier-Linien-Höhe nutzen, aber mit etwas Luft
-    const fullHeight = y3 - y0;
-    fontSize = fullHeight * 0.70; // hier sitzt der Buchstabe deutlich größer „im Heft“
-  }
-
-  ctx.font = fontSize.toFixed(0) + 'px "Trebuchet MS", system-ui, sans-serif';
-  ctx.textAlign = "center";
-  ctx.textBaseline = "alphabetic";
-
-  const baseline = y2;       // direkt auf die Grundlinie
-  const x = w * 0.5;         // mittig im Feld
-
-  ctx.fillStyle = "rgba(248,250,252,0.95)";
-  ctx.globalAlpha = 0.38;    // leicht durchsichtig, damit Kreide darüber gut sichtbar ist
-  ctx.fillText(text, x, baseline);
-  ctx.restore();
-}
-
-    // --- Zeichnen mit „Kreide“ ---
+    // Zeichnen mit Kreide
     function getPos(e) {
       const rect = canvas.getBoundingClientRect();
       if (e.touches && e.touches[0]) {
@@ -533,8 +644,8 @@
       e.preventDefault();
       const pos = getPos(e);
       const width = canvas.clientWidth || 300;
-      const base = 0.05; // Kreide-Dicke
-      ctx.lineWidth = Math.max(width * base, 5);
+      const base = 0.015;
+      ctx.lineWidth = Math.max(width * base, 2);
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
       ctx.strokeStyle = penColor;
@@ -555,13 +666,301 @@
     canvas.addEventListener("mousedown", startDraw);
     canvas.addEventListener("mousemove", moveDraw);
     window.addEventListener("mouseup", endDraw);
-
     canvas.addEventListener("touchstart", startDraw, { passive: false });
     canvas.addEventListener("touchmove", moveDraw, { passive: false });
     canvas.addEventListener("touchend", endDraw, { passive: false });
     canvas.addEventListener("touchcancel", endDraw, { passive: false });
 
-    // --- UI-Events ---
+    // Kontrollfunktion
+    function checkDrawing() {
+      const refCanvas = createReferenceCanvas();
+      const userCanvas = canvas;
+      const refData = analyzeCanvas(refCanvas);
+      const userData = analyzeCanvas(userCanvas);
+      const score = compareDrawings(refData, userData);
+      showFeedback(score);
+    }
+
+    function createReferenceCanvas() {
+      const tempCanvas = document.createElement('canvas');
+      const tempCtx = tempCanvas.getContext('2d');
+      
+      const w = canvas.clientWidth || canvas.width;
+      const h = canvas.clientHeight || canvas.height;
+      tempCanvas.width = w;
+      tempCanvas.height = h;
+
+      const lineSpacing = h * 0.09;
+      const centerY = h * 0.5;
+      const line1 = centerY - lineSpacing * 1.5;
+      const line2 = centerY - lineSpacing * 0.5;
+      const line3 = centerY + lineSpacing * 0.5;
+      const line4 = centerY + lineSpacing * 1.5;
+
+      const isDigit = mode === "digits";
+      
+      if (isDigit) {
+        const digitHeight = line3 - line1;
+        const fontSize = digitHeight * 0.95;
+        tempCtx.font = `700 ${fontSize}px Arial, sans-serif`;
+        tempCtx.textAlign = "center";
+        tempCtx.textBaseline = "alphabetic";
+        tempCtx.fillStyle = "#ffffff";
+        tempCtx.fillText(currentChar, w * 0.5, line3);
+      } else {
+        const up = currentChar.toUpperCase();
+        const low = currentChar.toLowerCase();
+        const upperHeight = line3 - line1;
+        const upperFontSize = upperHeight * 0.95;
+        
+        tempCtx.font = `700 ${upperFontSize}px Arial, sans-serif`;
+        tempCtx.textAlign = "center";
+        tempCtx.textBaseline = "alphabetic";
+        tempCtx.fillStyle = "#ffffff";
+        tempCtx.fillText(up, w * 0.35, line3);
+        
+        let lowerFontSize, lowerBaseline;
+        if (ASCENDERS.has(low)) {
+          lowerFontSize = upperFontSize;
+          lowerBaseline = line3;
+        } else if (DESCENDERS.has(low)) {
+          const lowerHeight = line4 - line2;
+          lowerFontSize = lowerHeight * 0.95;
+          lowerBaseline = line4;
+        } else {
+          const xHeight = line3 - line2;
+          lowerFontSize = xHeight * 0.95;
+          lowerBaseline = line3;
+        }
+        
+        tempCtx.font = `700 ${lowerFontSize}px Arial, sans-serif`;
+        tempCtx.fillText(low, w * 0.65, lowerBaseline);
+      }
+
+      return tempCanvas;
+    }
+
+    function analyzeCanvas(cnv) {
+      const ctx = cnv.getContext('2d');
+      const w = cnv.width;
+      const h = cnv.height;
+      const imageData = ctx.getImageData(0, 0, w, h);
+      const pixels = imageData.data;
+
+      let filledPixels = 0;
+      let totalAlpha = 0;
+      let minX = w, maxX = 0, minY = h, maxY = 0;
+      const regions = { top: 0, middle: 0, bottom: 0, left: 0, right: 0, center: 0 };
+      
+      // Speziell für Punkte: Zähle Pixel im obersten Viertel
+      let topQuarterPixels = 0;
+      const topQuarterLimit = h * 0.25;
+
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const idx = (y * w + x) * 4;
+          const alpha = pixels[idx + 3];
+          
+          if (alpha > 50) {
+            filledPixels++;
+            totalAlpha += alpha;
+            
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+
+            // Zähle Pixel im obersten Viertel (für Punkte)
+            if (y < topQuarterLimit) {
+              topQuarterPixels++;
+            }
+
+            if (y < h * 0.33) regions.top++;
+            else if (y > h * 0.66) regions.bottom++;
+            else regions.middle++;
+
+            if (x < w * 0.33) regions.left++;
+            else if (x > w * 0.66) regions.right++;
+            else regions.center++;
+          }
+        }
+      }
+
+      const boundingWidth = maxX - minX;
+      const boundingHeight = maxY - minY;
+      const coverage = filledPixels / (w * h);
+
+      return {
+        filledPixels,
+        coverage,
+        boundingWidth,
+        boundingHeight,
+        centerX: (minX + maxX) / 2,
+        centerY: (minY + maxY) / 2,
+        regions,
+        width: w,
+        height: h,
+        topQuarterPixels: topQuarterPixels,
+        topQuarterRatio: topQuarterPixels / filledPixels
+      };
+    }
+
+    function compareDrawings(refData, userData) {
+      let score = 0;
+      const maxScore = 100;
+
+      // Prüfe ob es ein Buchstabe mit Punkten ist
+      const up = currentChar.toUpperCase();
+      const low = currentChar.toLowerCase();
+      const hasDots = DOTS_ABOVE.has(up) || DOTS_ABOVE.has(low);
+
+      // 1. Wurde überhaupt genug gezeichnet? (15 Punkte)
+      if (userData.filledPixels < 100) return 0;
+      const drawingAmount = Math.min(1, userData.filledPixels / 200);
+      score += drawingAmount * 15;
+
+      // 2. Sehr genaue Menge an Pixel (25 Punkte bei normalen, 20 bei Punkt-Buchstaben)
+      const coveragePoints = hasDots ? 20 : 25;
+      const coverageRatio = userData.coverage / refData.coverage;
+      if (coverageRatio < 0.5 || coverageRatio > 2.0) {
+        score += 0;
+      } else {
+        const deviation = Math.abs(1 - coverageRatio);
+        if (deviation < 0.3) {
+          score += coveragePoints * (1 - deviation / 0.3);
+        } else {
+          score += coveragePoints * Math.max(0, (0.5 - deviation) / 0.2);
+        }
+      }
+
+      // 2b. SPEZIELLE PUNKT-KONTROLLE (10 Punkte extra für Buchstaben mit Punkten)
+      if (hasDots) {
+        const refTopRatio = refData.topQuarterRatio;
+        const userTopRatio = userData.topQuarterRatio;
+        
+        // Prüfe ob im oberen Viertel ähnlich viele Pixel sind wie in der Vorlage
+        const topDiff = Math.abs(refTopRatio - userTopRatio);
+        
+        if (topDiff < 0.05) {
+          // Sehr gut: Punkte sind da und richtig positioniert
+          score += 10;
+        } else if (topDiff < 0.1) {
+          // Gut: Punkte sind da, aber nicht perfekt
+          score += 7;
+        } else if (topDiff < 0.15) {
+          // Ausreichend: Punkte erkennbar
+          score += 4;
+        } else {
+          // Punkte fehlen oder sind falsch
+          score += 0;
+        }
+      } else {
+        // Keine Punkt-Buchstaben: volle 5 Bonuspunkte
+        score += 5;
+      }
+
+      // 3. Sehr genaue Position und Zentrierung (30 Punkte) - VERSCHÄRFT
+      const centerDiffX = Math.abs(userData.centerX - refData.centerX);
+      const centerDiffY = Math.abs(userData.centerY - refData.centerY);
+      const maxCenterDiff = Math.max(userData.width, userData.height) * 0.2;
+      const totalCenterDiff = (centerDiffX + centerDiffY) / maxCenterDiff;
+      
+      if (totalCenterDiff < 0.5) {
+        score += 30 * (1 - totalCenterDiff / 0.5);
+      } else if (totalCenterDiff < 1.0) {
+        score += 30 * Math.max(0, (1.0 - totalCenterDiff) / 0.5) * 0.3;
+      }
+
+      // 4. Sehr genaue Regionen-Verteilung (20 Punkte)
+      let regionScore = 0;
+      const regionKeys = ['top', 'middle', 'bottom', 'left', 'right', 'center'];
+      
+      regionKeys.forEach(key => {
+        const refRatio = refData.regions[key] / refData.filledPixels;
+        const userRatio = userData.regions[key] / userData.filledPixels;
+        const diff = Math.abs(refRatio - userRatio);
+        
+        if (diff < 0.1) {
+          regionScore += 1 - (diff / 0.1);
+        } else if (diff < 0.2) {
+          regionScore += (0.2 - diff) / 0.1 * 0.2;
+        }
+      });
+      
+      score += (regionScore / regionKeys.length) * 20;
+
+      return Math.min(maxScore, Math.max(0, score));
+    }
+
+    function showFeedback(score) {
+      feedbackBox.classList.remove('hidden', 'success', 'partial', 'try-again');
+      
+      // Prüfe ob es ein Buchstabe mit Punkten ist
+      const up = currentChar.toUpperCase();
+      const low = currentChar.toLowerCase();
+      const hasDots = DOTS_ABOVE.has(up) || DOTS_ABOVE.has(low);
+      
+      let emoji, title, text, cssClass;
+
+      if (score >= 85) {
+        emoji = "🌟";
+        title = "Perfekt geschrieben!";
+        if (hasDots) {
+          text = "Wow! Du hast den Buchstaben wirklich sorgfältig nachgespurt. Die Punkte oben hast du auch richtig gesetzt! Du hast genau auf die Linien geachtet und die Form sehr gut getroffen.";
+        } else {
+          text = "Wow! Du hast den Buchstaben wirklich sorgfältig nachgespurt. Du hast genau auf die Linien geachtet und die Form sehr gut getroffen. Das zeigt, dass du mit Konzentration und Ruhe arbeitest!";
+        }
+        cssClass = "success";
+      } else if (score >= 70) {
+        emoji = "⭐";
+        title = "Sehr gut gemacht!";
+        if (hasDots) {
+          text = "Prima! Deine Schrift sieht schon richtig gut aus. Die Punkte sind da und die Form stimmt. Mit etwas mehr Übung wird es noch besser!";
+        } else {
+          text = "Prima! Deine Schrift sieht schon richtig gut aus. Du hast die richtige Form und bleibst gut auf den Linien. Mit etwas mehr Übung wird es noch besser!";
+        }
+        cssClass = "success";
+      } else if (score >= 50) {
+        emoji = "✅";
+        title = "Geschafft!";
+        if (hasDots) {
+          text = "Gut gemacht! Du hast die Aufgabe gemeistert. Deine Form ist erkennbar und die Punkte sind da. Wenn du magst, kannst du es nochmal probieren und noch genauer arbeiten.";
+        } else {
+          text = "Gut gemacht! Du hast die Aufgabe gemeistert. Deine Form ist erkennbar und du bist den Linien gefolgt. Wenn du magst, kannst du es nochmal probieren und noch genauer arbeiten.";
+        }
+        cssClass = "success";
+      } else if (score >= 35) {
+        emoji = "💪";
+        title = "Fast geschafft!";
+        if (hasDots) {
+          text = "Du bist schon sehr nah dran! Achte besonders auf die Punkte oben – sie gehören zum Buchstaben dazu. Spure die Vorlage langsam nach, dann klappt es!";
+        } else {
+          text = "Du bist schon sehr nah dran! Versuch beim nächsten Mal, die Vorlage noch genauer nachzuspuren. Nimm dir Zeit und folge den Linien langsam Stück für Stück. Du kannst das!";
+        }
+        cssClass = "partial";
+      } else {
+        emoji = "🎯";
+        title = "Versuch es nochmal!";
+        if (hasDots) {
+          text = "Lass uns gemeinsam üben! Schau dir die Vorlage genau an: Der Buchstabe hat Punkte oben – die sind ganz wichtig! Spure erst den Buchstaben und dann die Punkte nach. Jeder Versuch macht dich besser!";
+        } else {
+          text = "Lass uns gemeinsam üben! Schau dir die Vorlage genau an: Wo beginnt der Buchstabe? Wo endet er? Spure dann langsam und vorsichtig nach. Jeder Versuch macht dich besser!";
+        }
+        cssClass = "try-again";
+      }
+
+      feedbackBox.classList.add(cssClass);
+      feedbackTitle.textContent = emoji + " " + title;
+      feedbackText.textContent = text;
+      scoreFill.style.width = score + "%";
+    }
+
+    function hideFeedback() {
+      feedbackBox.classList.add('hidden');
+      scoreFill.style.width = "0%";
+    }
+
+    // UI-Events
     colorDots.forEach(dot => {
       dot.addEventListener("click", () => {
         colorDots.forEach(d => d.classList.remove("active"));
@@ -577,6 +976,7 @@
       setCharByIndex(rnd);
     });
     btnClear.addEventListener("click", clearCanvas);
+    btnCheck.addEventListener("click", checkDrawing);
 
     btnToggleGuide.addEventListener("click", () => {
       showGuide = !showGuide;
@@ -598,7 +998,6 @@
     window.addEventListener("resize", resizeCanvas);
     window.addEventListener("orientationchange", () => setTimeout(resizeCanvas, 150));
 
-    // Start
     function init() {
       setMode("upper");
       fillCharSelect();
