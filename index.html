@@ -7,910 +7,454 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Alphabet Nachspuren – Kidsneed</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
-  <!-- Schulschrift-ähnliche Schrift für Buchstaben -->
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --s-1:8px;--s-2:16px;--s-3:24px;--s-4:32px;
-      --radius-sm:12px;--radius-md:16px;--radius-lg:24px;--radius-xl:28px;
-      --shadow-soft:0 2px 10px rgba(45,42,38,.10);--shadow-subtle:0 1px 3px rgba(45,42,38,.06);
+      --radius-sm:12px;--radius-md:16px;--radius-lg:24px;
+      --shadow-soft:0 2px 10px rgba(45,42,38,.10);
       --bg-canvas:#F5F0E8;--bg-card:#FFFFFF;--bg-muted:#EDE8DC;
       --ink-primary:#2D2A26;--ink-secondary:#6B665C;--ink-light:#9C9588;
       --accent:#D4A574;--accent-light:rgba(212,165,116,.12);--accent-dark:#B48554;
       --color-success:#7BA08A;--color-success-bg:rgba(123,160,138,.15);
       --color-error:#C4726C;--color-error-bg:rgba(196,114,108,.15);
-      --color-warn:#D4A574;--color-warn-bg:rgba(212,165,116,.15);
       --text-2xl:24px;--text-xl:20px;--text-lg:18px;--text-md:16px;--text-sm:14px;--text-xs:12px;
       --motion-fast:150ms;--ease-out:cubic-bezier(0.33,1,0.68,1);
-      --app-max-w:600px;--font:'Nunito',system-ui,sans-serif;
-      /* Linienfarben */
-      --line-base:#C4726C;
-      --line-mid:#4A7C91;
-      --line-top:#7BA08A;
-      --line-light:rgba(0,0,0,0.08);
+      --app-max-w:480px;--font:'Nunito',system-ui,sans-serif;
     }
     *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
     html,body{height:100%}
     body{margin:0;background:var(--bg-canvas);color:var(--ink-primary);font-family:var(--font);font-weight:600;font-size:var(--text-md);line-height:1.5;display:flex;align-items:center;justify-content:center;overflow:hidden}
-    *:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:var(--radius-sm)}
 
-    .app-frame{width:100%;height:100%;background:var(--bg-card);display:flex;flex-direction:column;overflow:hidden;position:relative}
-    @media(min-width:520px){body{padding:var(--s-3)}.app-frame{max-width:var(--app-max-w);height:94dvh;max-height:940px;border:3px solid var(--ink-primary);border-radius:var(--radius-lg);box-shadow:var(--shadow-subtle)}}
+    .app-frame{width:100%;height:100%;background:var(--bg-card);display:flex;flex-direction:column;overflow:hidden}
+    @media(min-width:520px){body{padding:var(--s-3)}.app-frame{max-width:var(--app-max-w);height:94dvh;max-height:800px;border:3px solid var(--ink-primary);border-radius:var(--radius-lg);box-shadow:var(--shadow-soft)}}
 
-    header{height:72px;padding:0 var(--s-3);display:flex;align-items:center;justify-content:space-between;gap:var(--s-2);border-bottom:3px solid var(--ink-primary);background:var(--bg-card);flex:0 0 auto}
-    .brand{display:flex;flex-direction:column;gap:2px;min-width:0}
-    .brand-title{font-size:var(--text-xl);font-weight:900;letter-spacing:-0.02em;line-height:1.1;display:flex;align-items:center;gap:var(--s-1)}
-    .brand-subtitle{font-size:var(--text-xs);font-weight:900;text-transform:uppercase;letter-spacing:.10em;color:var(--ink-secondary)}
-    .header-stats{display:flex;gap:var(--s-1);align-items:center}
+    /* Header - kompakt */
+    header{padding:var(--s-2) var(--s-3);display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--ink-primary);background:var(--bg-card)}
+    .brand{font-size:var(--text-lg);font-weight:900}
+    .stats{display:flex;gap:var(--s-2);align-items:center}
+    .stat{display:flex;align-items:center;gap:4px;font-weight:900;font-size:var(--text-sm)}
+    .stat-icon{font-size:16px}
 
-    .pill{min-height:48px;padding:10px 12px;border-radius:var(--radius-sm);border:2px solid var(--ink-primary);background:var(--bg-muted);display:flex;align-items:center;gap:6px;user-select:none;cursor:pointer;transition:transform var(--motion-fast) var(--ease-out)}
-    .pill:hover{box-shadow:var(--shadow-soft);transform:translateY(-1px)}
-    .pill:active{transform:scale(0.98)}
-    .pill .icon{font-size:16px}
-    .pill .val{font-weight:900;font-size:var(--text-sm);font-variant-numeric:tabular-nums}
+    /* Main */
+    .viewport{flex:1;overflow-y:auto;padding:var(--s-2);display:flex;flex-direction:column;gap:var(--s-2)}
 
-    .viewport{flex:1;overflow-y:auto;padding:var(--s-3);background:radial-gradient(1200px 340px at 50% 0%,rgba(212,165,116,.10),transparent 60%),var(--bg-card);overscroll-behavior:contain}
+    /* Letter Navigation */
+    .letter-nav{display:flex;align-items:center;justify-content:center;gap:var(--s-2)}
+    .nav-btn{width:48px;height:48px;border-radius:var(--radius-sm);border:2px solid var(--ink-primary);background:var(--bg-muted);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform var(--motion-fast)}
+    .nav-btn:hover{transform:scale(1.05)}
+    .nav-btn:active{transform:scale(0.95)}
+    .current-letter{font-size:var(--text-2xl);font-weight:900;min-width:80px;text-align:center;padding:var(--s-1) var(--s-2);border-radius:var(--radius-sm);border:2px solid var(--ink-primary);background:var(--bg-card)}
+    .letter-count{font-size:var(--text-xs);color:var(--ink-secondary);text-align:center;margin-top:4px}
 
-    .card{border:3px solid var(--ink-primary);border-radius:var(--radius-lg);background:var(--bg-card);box-shadow:var(--shadow-subtle);margin-bottom:var(--s-3)}
-    .card-section{padding:var(--s-3)}
-    .card-section+.card-section{border-top:3px solid var(--ink-primary)}
-    .section-label{font-size:var(--text-xs);font-weight:900;text-transform:uppercase;letter-spacing:.10em;color:var(--ink-secondary);margin-bottom:var(--s-2)}
+    /* Canvas Area */
+    .canvas-container{flex:1;min-height:200px;border:3px solid var(--ink-primary);border-radius:var(--radius-md);overflow:hidden;background:#FFFEF9;position:relative;touch-action:none}
+    canvas{display:block;width:100%;height:100%;position:absolute;inset:0}
+    #bgCanvas{z-index:1}
+    #drawCanvas{z-index:2}
 
-    /* Mode Tabs */
-    .mode-tabs{display:flex;gap:var(--s-1);margin-bottom:var(--s-2)}
-    .mode-tab{flex:1;min-height:48px;padding:12px;border-radius:var(--radius-sm);border:2px solid var(--ink-primary);background:var(--bg-muted);font-family:var(--font);font-weight:900;font-size:var(--text-sm);color:var(--ink-secondary);cursor:pointer;transition:all var(--motion-fast) var(--ease-out);text-align:center}
-    .mode-tab:hover{transform:translateY(-1px);box-shadow:var(--shadow-soft)}
-    .mode-tab.active{background:var(--accent);color:white;border-color:var(--accent-dark)}
+    /* Quick Tools - Floating */
+    .quick-tools{position:absolute;top:var(--s-1);right:var(--s-1);display:flex;gap:4px;z-index:10}
+    .tool-btn{width:40px;height:40px;border-radius:var(--radius-sm);border:2px solid var(--ink-primary);background:var(--bg-card);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--motion-fast);box-shadow:var(--shadow-soft)}
+    .tool-btn:hover{transform:scale(1.05)}
+    .tool-btn.active{background:var(--accent);color:white;border-color:var(--accent-dark)}
+    .tool-btn.danger{background:var(--color-error-bg);border-color:var(--color-error)}
 
-    /* Progress */
-    .progress-wrap{margin-bottom:var(--s-2)}
-    .progress-info{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--s-1)}
-    .progress-label{font-size:var(--text-xs);font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-secondary)}
-    .progress-counter{font-size:var(--text-md);font-weight:900;color:var(--accent)}
-    .progress-bar{height:12px;background:var(--bg-muted);border:2px solid var(--ink-primary);border-radius:6px;overflow:hidden}
-    .progress-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .3s var(--ease-out);width:0}
+    /* Color Picker - Floating Bottom */
+    .color-bar{position:absolute;bottom:var(--s-1);left:50%;transform:translateX(-50%);display:flex;gap:6px;padding:6px 10px;background:rgba(255,255,255,0.95);border:2px solid var(--ink-primary);border-radius:20px;z-index:10;box-shadow:var(--shadow-soft)}
+    .color-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--ink-primary);cursor:pointer;transition:transform var(--motion-fast)}
+    .color-dot:hover{transform:scale(1.15)}
+    .color-dot.active{outline:3px solid var(--accent);outline-offset:2px}
 
-    /* Word Display */
-    .word-display{background:var(--bg-muted);border:2px solid var(--ink-primary);border-radius:var(--radius-md);padding:var(--s-2);margin-bottom:var(--s-2);text-align:center;display:none}
-    .word-display.active{display:block}
-    .word-letters{display:flex;justify-content:center;gap:4px;flex-wrap:wrap}
-    .word-letter{font-size:var(--text-2xl);font-weight:900;padding:4px 8px;border-radius:var(--radius-sm);background:var(--bg-card);border:2px solid var(--ink-light);color:var(--ink-light);transition:all var(--motion-fast)}
-    .word-letter.current{background:var(--accent-light);border-color:var(--accent);color:var(--accent);transform:scale(1.1)}
-    .word-letter.done{background:var(--color-success-bg);border-color:var(--color-success);color:var(--color-success)}
-    .word-label{font-size:var(--text-xs);font-weight:900;color:var(--ink-secondary);margin-top:var(--s-1);text-transform:uppercase;letter-spacing:.08em}
+    /* Brush Size Slider - Inline */
+    .brush-control{display:flex;align-items:center;gap:var(--s-1);padding:0 var(--s-2)}
+    .brush-label{font-size:var(--text-xs);font-weight:900;color:var(--ink-secondary)}
+    .brush-slider{flex:1;accent-color:var(--accent)}
 
-    /* Canvas Stage */
-    .stage{border:3px solid var(--ink-primary);border-radius:var(--radius-md);overflow:hidden;background:#FFFEF9}
-    .stage-header{padding:12px 14px;border-bottom:3px solid var(--ink-primary);background:var(--bg-muted);display:flex;align-items:center;justify-content:space-between;gap:var(--s-2);flex-wrap:wrap}
-    .stage-info{display:flex;align-items:center;gap:var(--s-2)}
-    .big-letter{font-size:var(--text-2xl);font-weight:900;color:var(--accent);min-width:50px;text-align:center}
-    .stage-hint{font-size:var(--text-xs);font-weight:900;color:var(--ink-secondary);text-transform:uppercase;letter-spacing:.08em}
-    .stage-score{font-size:var(--text-sm);font-weight:900;color:var(--ink-secondary)}
+    /* Main Action Button */
+    .main-action{padding:var(--s-2) var(--s-3)}
+    .btn-main{width:100%;min-height:56px;border-radius:var(--radius-md);border:3px solid var(--ink-primary);background:var(--color-success);color:white;font-family:var(--font);font-weight:900;font-size:var(--text-lg);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:var(--s-1);transition:all var(--motion-fast)}
+    .btn-main:hover{transform:translateY(-2px);box-shadow:var(--shadow-soft)}
+    .btn-main:active{transform:translateY(0)}
 
-    /* Linien-Legende */
-    .lines-legend{display:flex;gap:var(--s-2);font-size:var(--text-xs);font-weight:900;flex-wrap:wrap}
-    .legend-item{display:flex;align-items:center;gap:4px}
-    .legend-line{width:20px;height:3px;border-radius:2px}
-    .legend-line.top{background:var(--line-top)}
-    .legend-line.mid{background:var(--line-mid)}
-    .legend-line.base{background:var(--line-base)}
+    /* Feedback Toast */
+    .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--ink-primary);color:white;padding:var(--s-2) var(--s-3);border-radius:var(--radius-md);font-weight:900;font-size:var(--text-sm);opacity:0;transition:all 0.3s var(--ease-out);z-index:100;text-align:center;max-width:90%}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    .toast.success{background:var(--color-success)}
+    .toast.error{background:var(--color-error)}
 
-    .canvas-wrap{position:relative;width:100%;background:#FFFEF9;touch-action:none}
-    canvas{display:block;width:100%;height:auto}
-    #bgCanvas{position:relative;z-index:1}
-    #drawCanvas{position:absolute;inset:0;z-index:2}
+    /* Progress Dots */
+    .progress-dots{display:flex;justify-content:center;gap:3px;flex-wrap:wrap;padding:var(--s-1)}
+    .pdot{width:8px;height:8px;border-radius:50%;background:var(--bg-muted);border:1px solid var(--ink-light)}
+    .pdot.done{background:var(--color-success);border-color:var(--color-success)}
+    .pdot.current{background:var(--accent);border-color:var(--accent-dark);transform:scale(1.3)}
 
-    /* Controls */
-    .controls{margin-top:var(--s-2)}
-    .controls-row{display:flex;gap:var(--s-2);margin-bottom:var(--s-2);flex-wrap:wrap}
-    .control-box{flex:1;min-width:140px;padding:var(--s-2);background:var(--bg-muted);border:2px solid var(--ink-primary);border-radius:var(--radius-md)}
-    .control-label{display:flex;align-items:center;justify-content:space-between;font-size:var(--text-xs);font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-secondary);margin-bottom:var(--s-1)}
-    .control-value{font-weight:900;color:var(--accent)}
-    input[type="range"]{width:100%;margin:var(--s-1) 0;accent-color:var(--accent)}
-
-    /* Toggle Switch */
-    .toggle-row{display:flex;justify-content:space-between;align-items:center;padding:var(--s-1) 0}
-    .toggle-label{font-size:var(--text-sm);font-weight:900;color:var(--ink-primary)}
-    .toggle{width:52px;height:32px;background:var(--bg-canvas);border:2px solid var(--ink-primary);border-radius:16px;position:relative;cursor:pointer;transition:background var(--motion-fast)}
-    .toggle::after{content:'';position:absolute;width:24px;height:24px;background:var(--bg-card);border:2px solid var(--ink-primary);border-radius:12px;top:2px;left:2px;transition:left var(--motion-fast)}
-    .toggle.on{background:var(--color-success);border-color:var(--color-success)}
-    .toggle.on::after{left:22px;border-color:var(--color-success)}
-
-    /* Color Swatches */
-    .swatches{display:flex;gap:8px;flex-wrap:wrap;margin-top:var(--s-1)}
-    .swatch{width:36px;height:36px;border-radius:var(--radius-sm);border:2px solid var(--ink-primary);cursor:pointer;transition:transform var(--motion-fast)}
-    .swatch:hover{transform:scale(1.1)}
-    .swatch.active{outline:3px solid var(--accent);outline-offset:2px}
-
-    /* Buttons */
-    .btn{min-height:48px;padding:12px 14px;border-radius:var(--radius-sm);border:2px solid var(--ink-primary);background:var(--bg-card);color:var(--ink-secondary);font-family:var(--font);font-weight:900;font-size:var(--text-sm);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:all var(--motion-fast) var(--ease-out);user-select:none}
-    .btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-soft)}
-    .btn:active{transform:translateY(1px);box-shadow:none}
-    .btn.primary{background:var(--accent);color:white;border-color:var(--accent-dark)}
-    .btn.primary:hover{filter:brightness(1.05)}
-    .btn.success{background:var(--color-success);color:white;border-color:var(--color-success)}
-    .btn.danger{background:var(--color-error-bg);color:var(--color-error);border-color:var(--color-error)}
-    .btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
-
-    .actions{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s-1);margin-top:var(--s-2)}
-    .actions .btn{flex:1}
-    .actions-main{display:flex;gap:var(--s-2);margin-top:var(--s-2)}
-    .actions-main .btn{flex:1}
-
-    /* Feedback */
-    .feedback{margin-top:var(--s-2);padding:var(--s-2);border-radius:var(--radius-sm);border:2px solid var(--ink-primary);background:var(--bg-muted);font-weight:800;font-size:var(--text-sm);color:var(--ink-secondary);display:none;align-items:flex-start;gap:10px}
-    .feedback.open{display:flex}
-    .feedback .ficon{font-size:18px;flex-shrink:0}
-    .feedback.success{background:var(--color-success-bg);border-color:var(--color-success);color:#2D5A3A}
-    .feedback.error{background:var(--color-error-bg);border-color:var(--color-error);color:#6B3A32}
-
-    footer{flex:0 0 auto;padding:var(--s-2) var(--s-3);padding-bottom:max(var(--s-2),env(safe-area-inset-bottom));background:var(--bg-card);border-top:3px solid var(--ink-primary);display:flex;gap:var(--s-2)}
-    footer .btn{flex:1}
-
-    @media(max-width:400px){
-      header{padding:0 var(--s-2)}
-      .viewport{padding:var(--s-2)}
-      footer{padding:var(--s-2)}
-      .brand-title{font-size:var(--text-lg)}
-      .actions{grid-template-columns:repeat(2,1fr)}
-    }
+    /* Toggle Row */
+    .toggles{display:flex;justify-content:center;gap:var(--s-3);padding:var(--s-1) 0}
+    .toggle-item{display:flex;align-items:center;gap:6px;font-size:var(--text-xs);font-weight:900;color:var(--ink-secondary);cursor:pointer}
+    .toggle-box{width:20px;height:20px;border-radius:4px;border:2px solid var(--ink-primary);background:var(--bg-muted);display:flex;align-items:center;justify-content:center;font-size:12px;transition:all var(--motion-fast)}
+    .toggle-box.on{background:var(--color-success);border-color:var(--color-success);color:white}
   </style>
 </head>
 <body>
   <div class="app-frame">
+    
+    <!-- Header -->
     <header>
-      <div class="brand">
-        <div class="brand-title">✏️ Alphabet Nachspuren</div>
-        <div class="brand-subtitle">Kidsneed · Buchstaben & Wörter</div>
-      </div>
-      <div class="header-stats">
-        <div class="pill" id="stats-pill">
-          <span class="icon">⭐</span>
-          <span class="val" id="coin-count">0</span>
-        </div>
+      <div class="brand">✏️ Buchstaben</div>
+      <div class="stats">
+        <div class="stat"><span class="stat-icon">⭐</span><span id="coins">0</span></div>
+        <div class="stat"><span class="stat-icon">✓</span><span id="done-count">0</span>/30</div>
       </div>
     </header>
 
     <main class="viewport">
-      <div class="card">
-        <!-- Mode Selection -->
-        <section class="card-section">
-          <div class="section-label">Modus wählen</div>
-          <div class="mode-tabs">
-            <button class="mode-tab active" data-mode="letter" type="button">🔤 Buchstaben</button>
-            <button class="mode-tab" data-mode="word" type="button">📝 Wörter</button>
-          </div>
-
-          <!-- Progress -->
-          <div class="progress-wrap">
-            <div class="progress-info">
-              <span class="progress-label" id="progress-label">Fortschritt</span>
-              <span class="progress-counter" id="progress-counter">0/30</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill" id="progress-fill"></div>
-            </div>
-          </div>
-
-          <!-- Word Display (for word mode) -->
-          <div class="word-display" id="word-display">
-            <div class="word-letters" id="word-letters"></div>
-            <div class="word-label" id="word-hint">Spure jeden Buchstaben nach</div>
-          </div>
-        </section>
-
-        <!-- Canvas Stage -->
-        <section class="card-section">
-          <div class="stage">
-            <div class="stage-header">
-              <div class="stage-info">
-                <div class="big-letter" id="big-letter">A a</div>
-                <div class="stage-hint" id="stage-hint">Spur den Buchstaben nach</div>
-              </div>
-              <div class="lines-legend">
-                <div class="legend-item"><div class="legend-line top"></div><span>Oben</span></div>
-                <div class="legend-item"><div class="legend-line mid"></div><span>Mitte</span></div>
-                <div class="legend-item"><div class="legend-line base"></div><span>Grund</span></div>
-              </div>
-            </div>
-            <div class="canvas-wrap" id="canvas-wrap">
-              <canvas id="bgCanvas"></canvas>
-              <canvas id="drawCanvas"></canvas>
-            </div>
-          </div>
-
-          <!-- Toggles -->
-          <div style="display:flex;gap:var(--s-3);margin-top:var(--s-2);flex-wrap:wrap">
-            <div class="toggle-row" style="flex:1">
-              <span class="toggle-label">👁️ Buchstabe zeigen</span>
-              <div class="toggle on" id="toggle-letter" role="switch" tabindex="0"></div>
-            </div>
-            <div class="toggle-row" style="flex:1">
-              <span class="toggle-label">📏 Linien zeigen</span>
-              <div class="toggle on" id="toggle-lines" role="switch" tabindex="0"></div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Controls -->
-        <section class="card-section">
-          <div class="controls">
-            <div class="controls-row">
-              <div class="control-box">
-                <div class="control-label">
-                  <span>🖌️ Pinselgröße</span>
-                  <span class="control-value" id="brush-val">12</span>
-                </div>
-                <input type="range" id="brush-size" min="4" max="30" value="12">
-                <div class="toggle-row">
-                  <span class="toggle-label">🧽 Radierer</span>
-                  <div class="toggle" id="toggle-eraser" role="switch" tabindex="0"></div>
-                </div>
-              </div>
-              <div class="control-box">
-                <div class="control-label">
-                  <span>🎨 Farbe</span>
-                </div>
-                <div class="swatches" id="color-swatches">
-                  <div class="swatch active" data-color="#2D2A26" style="background:#2D2A26"></div>
-                  <div class="swatch" data-color="#4A7C91" style="background:#4A7C91"></div>
-                  <div class="swatch" data-color="#C4726C" style="background:#C4726C"></div>
-                  <div class="swatch" data-color="#7BA08A" style="background:#7BA08A"></div>
-                  <div class="swatch" data-color="#8B7BA0" style="background:#8B7BA0"></div>
-                </div>
-              </div>
-            </div>
-
-            <div class="actions">
-              <button class="btn" id="btn-prev" type="button">⬅️ Zurück</button>
-              <button class="btn" id="btn-next" type="button">Weiter ➡️</button>
-              <button class="btn" id="btn-random" type="button">🎲 Zufall</button>
-              <button class="btn" id="btn-undo" type="button">↩️ Rückgängig</button>
-              <button class="btn danger" id="btn-clear" type="button">🧼 Löschen</button>
-              <button class="btn" id="btn-check" type="button">🔍 Prüfen</button>
-            </div>
-
-            <div class="actions-main">
-              <button class="btn success" id="btn-done" type="button">✅ Fertig & Weiter</button>
-            </div>
-          </div>
-
-          <div class="feedback" id="feedback">
-            <span class="ficon" id="feedback-icon">💡</span>
-            <span id="feedback-text">Tipp: Spur langsam und sauber nach!</span>
-          </div>
-        </section>
+      
+      <!-- Letter Navigation -->
+      <div class="letter-nav">
+        <button class="nav-btn" id="prev-btn" type="button">◀</button>
+        <div>
+          <div class="current-letter" id="current-letter">A a</div>
+          <div class="letter-count" id="letter-num">1 von 30</div>
+        </div>
+        <button class="nav-btn" id="next-btn" type="button">▶</button>
       </div>
+
+      <!-- Progress Dots -->
+      <div class="progress-dots" id="progress-dots"></div>
+
+      <!-- Toggles -->
+      <div class="toggles">
+        <div class="toggle-item" id="toggle-letter">
+          <div class="toggle-box on" id="toggle-letter-box">✓</div>
+          <span>Vorlage</span>
+        </div>
+        <div class="toggle-item" id="toggle-lines">
+          <div class="toggle-box on" id="toggle-lines-box">✓</div>
+          <span>Linien</span>
+        </div>
+      </div>
+
+      <!-- Canvas -->
+      <div class="canvas-container" id="canvas-container">
+        <canvas id="bgCanvas"></canvas>
+        <canvas id="drawCanvas"></canvas>
+        
+        <!-- Quick Tools -->
+        <div class="quick-tools">
+          <button class="tool-btn" id="undo-btn" type="button" title="Rückgängig">↩</button>
+          <button class="tool-btn danger" id="clear-btn" type="button" title="Löschen">🗑</button>
+        </div>
+
+        <!-- Colors -->
+        <div class="color-bar" id="color-bar">
+          <div class="color-dot active" data-color="#2D2A26" style="background:#2D2A26"></div>
+          <div class="color-dot" data-color="#4A7C91" style="background:#4A7C91"></div>
+          <div class="color-dot" data-color="#C4726C" style="background:#C4726C"></div>
+          <div class="color-dot" data-color="#7BA08A" style="background:#7BA08A"></div>
+          <div class="color-dot" data-color="#D4A574" style="background:#D4A574"></div>
+        </div>
+      </div>
+
+      <!-- Brush Size -->
+      <div class="brush-control">
+        <span class="brush-label">Stift:</span>
+        <input type="range" class="brush-slider" id="brush-size" min="4" max="24" value="10">
+      </div>
+
     </main>
 
-    <footer>
-      <a class="btn" href="https://humaneed.github.io/kidsneed/">← Hub</a>
-      <button class="btn" id="btn-help" type="button">💡 Hilfe</button>
-    </footer>
+    <!-- Main Action -->
+    <div class="main-action">
+      <button class="btn-main" id="done-btn" type="button">✓ Fertig – Weiter</button>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
   </div>
 
-  <script>
+<script>
 (()=>{
   'use strict';
   const $=s=>document.querySelector(s);
   const $$=s=>[...document.querySelectorAll(s)];
 
-  // ===== LOCAL STORAGE =====
-  const LS={coins:'kidsneed_coins',lettersDone:'kidsneed_alpha_letters',wordsDone:'kidsneed_alpha_words',lastIdx:'kidsneed_alpha_idx'};
-  const getInt=(k,fb=0)=>{try{const v=localStorage.getItem(k);return v?parseInt(v,10)||fb:fb}catch{return fb}};
-  const setStr=(k,v)=>{try{localStorage.setItem(k,String(v))}catch{}};
-  const getArr=(k)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):[]}catch{return[]}};
-  const setArr=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
+  // Storage
+  const LS={coins:'kidsneed_coins',done:'kidsneed_alpha_done',idx:'kidsneed_alpha_idx'};
+  const getInt=(k,fb=0)=>{try{return parseInt(localStorage.getItem(k),10)||fb}catch{return fb}};
+  const setInt=(k,v)=>{try{localStorage.setItem(k,String(v))}catch{}};
+  const getSet=(k)=>{try{return new Set(JSON.parse(localStorage.getItem(k)||'[]'))}catch{return new Set()}};
+  const setSet=(k,s)=>{try{localStorage.setItem(k,JSON.stringify([...s]))}catch{}};
 
-  // ===== BUCHSTABEN-DATEN =====
-  // Jeder Buchstabe hat: id, groß, klein, Farbe (aus dem Bild)
+  // Letters
   const LETTERS=[
-    {id:'A',upper:'A',lower:'a',color:'#D4976A'},
-    {id:'B',upper:'B',lower:'b',color:'#A67B5B'},
-    {id:'C',upper:'C',lower:'c',color:'#E8A84C'},
-    {id:'D',upper:'D',lower:'d',color:'#F5C04A'},
-    {id:'E',upper:'E',lower:'e',color:'#E8D174'},
-    {id:'F',upper:'F',lower:'f',color:'#8B6B4A'},
-    {id:'G',upper:'G',lower:'g',color:'#6B8E6B'},
-    {id:'H',upper:'H',lower:'h',color:'#4A8B8B'},
-    {id:'I',upper:'I',lower:'i',color:'#5BA3A3'},
-    {id:'J',upper:'J',lower:'j',color:'#7B9EB8'},
-    {id:'K',upper:'K',lower:'k',color:'#5B8B7B'},
-    {id:'L',upper:'L',lower:'l',color:'#7BA08A'},
-    {id:'M',upper:'M',lower:'m',color:'#C4A864'},
-    {id:'N',upper:'N',lower:'n',color:'#6B7BA0'},
-    {id:'O',upper:'O',lower:'o',color:'#8BA0C4'},
-    {id:'P',upper:'P',lower:'p',color:'#7B6B90'},
-    {id:'Q',upper:'Q',lower:'q',color:'#6B5B80'},
-    {id:'R',upper:'R',lower:'r',color:'#A06B8B'},
-    {id:'S',upper:'S',lower:'s',color:'#D4A0A0'},
-    {id:'T',upper:'T',lower:'t',color:'#C4726C'},
-    {id:'U',upper:'U',lower:'u',color:'#E8A060'},
-    {id:'V',upper:'V',lower:'v',color:'#D4A574'},
-    {id:'W',upper:'W',lower:'w',color:'#C49840'},
-    {id:'X',upper:'X',lower:'x',color:'#8090A0'},
-    {id:'Y',upper:'Y',lower:'y',color:'#606B70'},
-    {id:'Z',upper:'Z',lower:'z',color:'#505860'},
-    {id:'Ä',upper:'Ä',lower:'ä',color:'#606060'},
-    {id:'Ö',upper:'Ö',lower:'ö',color:'#707070'},
-    {id:'Ü',upper:'Ü',lower:'ü',color:'#505050'},
-    {id:'ß',upper:'ß',lower:'ß',color:'#404040'}
+    {id:'A',u:'A',l:'a',c:'#D4976A'},{id:'B',u:'B',l:'b',c:'#A67B5B'},{id:'C',u:'C',l:'c',c:'#E8A84C'},
+    {id:'D',u:'D',l:'d',c:'#F5C04A'},{id:'E',u:'E',l:'e',c:'#E8D174'},{id:'F',u:'F',l:'f',c:'#8B6B4A'},
+    {id:'G',u:'G',l:'g',c:'#6B8E6B'},{id:'H',u:'H',l:'h',c:'#4A8B8B'},{id:'I',u:'I',l:'i',c:'#5BA3A3'},
+    {id:'J',u:'J',l:'j',c:'#7B9EB8'},{id:'K',u:'K',l:'k',c:'#5B8B7B'},{id:'L',u:'L',l:'l',c:'#7BA08A'},
+    {id:'M',u:'M',l:'m',c:'#C4A864'},{id:'N',u:'N',l:'n',c:'#6B7BA0'},{id:'O',u:'O',l:'o',c:'#8BA0C4'},
+    {id:'P',u:'P',l:'p',c:'#7B6B90'},{id:'Q',u:'Q',l:'q',c:'#6B5B80'},{id:'R',u:'R',l:'r',c:'#A06B8B'},
+    {id:'S',u:'S',l:'s',c:'#D4A0A0'},{id:'T',u:'T',l:'t',c:'#C4726C'},{id:'U',u:'U',l:'u',c:'#E8A060'},
+    {id:'V',u:'V',l:'v',c:'#D4A574'},{id:'W',u:'W',l:'w',c:'#C49840'},{id:'X',u:'X',l:'x',c:'#8090A0'},
+    {id:'Y',u:'Y',l:'y',c:'#606B70'},{id:'Z',u:'Z',l:'z',c:'#505860'},{id:'Ä',u:'Ä',l:'ä',c:'#606060'},
+    {id:'Ö',u:'Ö',l:'ö',c:'#707070'},{id:'Ü',u:'Ü',l:'ü',c:'#505050'},{id:'ß',u:'ß',l:'ß',c:'#404040'}
   ];
+  const DESCENDERS=new Set(['g','j','p','q','y']);
+  const ASCENDERS=new Set(['b','d','f','h','k','l','t','ß']);
 
-  // Wörter für den Wort-Modus
-  const WORDS=[
-    {word:'OMA',hint:'Familie'},
-    {word:'OPA',hint:'Familie'},
-    {word:'EIS',hint:'Lecker!'},
-    {word:'ARM',hint:'Körperteil'},
-    {word:'OHR',hint:'Körperteil'},
-    {word:'ROT',hint:'Farbe'},
-    {word:'HUT',hint:'Kleidung'},
-    {word:'BUS',hint:'Fahrzeug'},
-    {word:'RAD',hint:'Fahrzeug'},
-    {word:'BALL',hint:'Spielzeug'},
-    {word:'HAUS',hint:'Gebäude'},
-    {word:'BAUM',hint:'Natur'},
-    {word:'HUND',hint:'Tier'},
-    {word:'AUTO',hint:'Fahrzeug'},
-    {word:'MAMA',hint:'Familie'},
-    {word:'PAPA',hint:'Familie'},
-    {word:'BUCH',hint:'Lesen'},
-    {word:'BROT',hint:'Essen'},
-    {word:'NASE',hint:'Körperteil'},
-    {word:'SONNE',hint:'Am Himmel'},
-    {word:'WOLKE',hint:'Am Himmel'},
-    {word:'BLUME',hint:'Natur'},
-    {word:'KATZE',hint:'Tier'},
-    {word:'VOGEL',hint:'Tier'},
-    {word:'SCHULE',hint:'Lernen'},
-    {word:'KINDER',hint:'Mehrzahl'},
-    {word:'WASSER',hint:'Trinken'},
-    {word:'ÄPFEL',hint:'Obst'},
-    {word:'LÖWE',hint:'Tier'},
-    {word:'MÜTZE',hint:'Kleidung'}
-  ];
-
-  // Buchstaben-Map
-  const LETTER_MAP={};
-  LETTERS.forEach((l,i)=>{LETTER_MAP[l.id]=i;LETTER_MAP[l.id.toLowerCase()]=i});
-
-  // ===== STATE =====
+  // State
   const state={
-    mode:'letter',
-    letterIdx:Math.min(getInt(LS.lastIdx,0),LETTERS.length-1),
-    wordIdx:0,
-    wordCharIdx:0,
-    lettersDone:new Set(getArr(LS.lettersDone)),
-    wordsDone:new Set(getArr(LS.wordsDone)),
+    idx:Math.min(getInt(LS.idx,0),LETTERS.length-1),
+    done:getSet(LS.done),
     showLetter:true,
     showLines:true,
-    isEraser:false,
     brushColor:'#2D2A26',
-    brushSize:12,
+    brushSize:10,
     undoStack:[],
-    painting:false,
-    lastPos:null
+    painting:false
   };
 
-  // ===== DOM =====
-  const coinCount=$('#coin-count');
-  const progressLabel=$('#progress-label');
-  const progressCounter=$('#progress-counter');
-  const progressFill=$('#progress-fill');
-  const wordDisplay=$('#word-display');
-  const wordLetters=$('#word-letters');
-  const wordHint=$('#word-hint');
-  const bigLetter=$('#big-letter');
-  const stageHint=$('#stage-hint');
-  const feedback=$('#feedback');
-  const feedbackIcon=$('#feedback-icon');
-  const feedbackText=$('#feedback-text');
+  // DOM
   const bgCanvas=$('#bgCanvas');
   const drawCanvas=$('#drawCanvas');
-  const canvasWrap=$('#canvas-wrap');
-  const bgCtx=bgCanvas.getContext('2d',{willReadFrequently:true});
-  const drawCtx=drawCanvas.getContext('2d',{willReadFrequently:true});
+  const container=$('#canvas-container');
+  const bgCtx=bgCanvas.getContext('2d');
+  const drawCtx=drawCanvas.getContext('2d');
+  const toast=$('#toast');
 
-  let dpr=Math.max(1,Math.min(3,window.devicePixelRatio||1));
-  const UNDO_MAX=15;
+  let dpr=Math.min(2,window.devicePixelRatio||1);
 
-  // ===== HELPERS =====
-  const showFeedback=(icon,text,type='')=>{
-    feedbackIcon.textContent=icon;
-    feedbackText.innerHTML=text;
-    feedback.className='feedback open'+(type?' '+type:'');
-  };
-  const hideFeedback=()=>feedback.classList.remove('open');
-
-  const updateCoins=()=>{coinCount.textContent=getInt(LS.coins,0)};
-  const addCoin=(n=1)=>{
-    const c=getInt(LS.coins,0)+n;
-    setStr(LS.coins,c);
-    updateCoins();
-    $('#stats-pill').style.transform='scale(1.1)';
-    setTimeout(()=>$('#stats-pill').style.transform='',200);
+  // Toast
+  const showToast=(msg,type='')=>{
+    toast.textContent=msg;
+    toast.className='toast show'+(type?' '+type:'');
+    setTimeout(()=>toast.classList.remove('show'),2000);
   };
 
-  const saveState=()=>{
-    setStr(LS.lastIdx,state.letterIdx);
-    setArr(LS.lettersDone,[...state.lettersDone]);
-    setArr(LS.wordsDone,[...state.wordsDone]);
+  // Update UI
+  const updateUI=()=>{
+    const letter=LETTERS[state.idx];
+    $('#current-letter').textContent=`${letter.u} ${letter.l}`;
+    $('#current-letter').style.color=letter.c;
+    $('#letter-num').textContent=`${state.idx+1} von ${LETTERS.length}`;
+    $('#coins').textContent=getInt(LS.coins,0);
+    $('#done-count').textContent=state.done.size;
+    
+    // Progress dots
+    $('#progress-dots').innerHTML=LETTERS.map((l,i)=>
+      `<div class="pdot${state.done.has(l.id)?' done':''}${i===state.idx?' current':''}"></div>`
+    ).join('');
   };
 
-  // ===== PROGRESS =====
-  const updateProgress=()=>{
-    if(state.mode==='letter'){
-      const done=state.lettersDone.size;
-      progressLabel.textContent='Buchstaben';
-      progressCounter.textContent=`${done}/${LETTERS.length}`;
-      progressFill.style.width=`${Math.round(done/LETTERS.length*100)}%`;
-    }else{
-      const done=state.wordsDone.size;
-      progressLabel.textContent='Wörter';
-      progressCounter.textContent=`${done}/${WORDS.length}`;
-      progressFill.style.width=`${Math.round(done/WORDS.length*100)}%`;
-    }
-  };
-
-  // ===== CANVAS SETUP =====
+  // Canvas setup
   const fitCanvas=()=>{
-    const w=canvasWrap.clientWidth;
-    const h=Math.max(220,Math.min(320,Math.round(w*0.5)));
-    bgCanvas.style.height=h+'px';
-    drawCanvas.style.height=h+'px';
-    bgCanvas.width=Math.round(w*dpr);
-    bgCanvas.height=Math.round(h*dpr);
-    drawCanvas.width=Math.round(w*dpr);
-    drawCanvas.height=Math.round(h*dpr);
+    const w=container.clientWidth;
+    const h=container.clientHeight;
+    bgCanvas.width=drawCanvas.width=Math.round(w*dpr);
+    bgCanvas.height=drawCanvas.height=Math.round(h*dpr);
   };
 
-  // ===== BUCHSTABEN-KATEGORIEN =====
-  // Kleinbuchstaben mit Unterlängen (gehen unter die Grundlinie)
-  const DESCENDERS = new Set(['g','j','p','q','y']);
-  // Kleinbuchstaben mit Oberlängen (gehen bis Oberlinie)
-  const ASCENDERS = new Set(['b','d','f','h','k','l','t','ß']);
-  // Kleinbuchstaben nur x-Höhe (zwischen Grund- und Mittellinie)
-  const XHEIGHT = new Set(['a','c','e','i','m','n','o','r','s','u','v','w','x','z','ä','ö','ü']);
-
-  // ===== ZEICHNE LINIEN UND BUCHSTABEN =====
-  const renderLetter=(idx)=>{
-    if(idx<0||idx>=LETTERS.length)return;
-    const letter=LETTERS[idx];
-    
-    // UI Update
-    bigLetter.textContent=`${letter.upper} ${letter.lower}`;
-    bigLetter.style.color=letter.color;
-    const isDone=state.lettersDone.has(letter.id);
-    stageHint.textContent=isDone?'✅ Bereits geschafft':'Spur den Buchstaben nach';
-    
-    hideFeedback();
-    clearDrawing(true);
+  // Render
+  const render=()=>{
     fitCanvas();
-
-    const cw=bgCanvas.width;
-    const ch=bgCanvas.height;
-
-    bgCtx.save();
-    bgCtx.setTransform(1,0,0,1,0,0);
-    bgCtx.clearRect(0,0,cw,ch);
+    const letter=LETTERS[state.idx];
+    const cw=bgCanvas.width,ch=bgCanvas.height;
     
-    // Hintergrund (leicht getönt wie Schulheft)
+    bgCtx.clearRect(0,0,cw,ch);
     bgCtx.fillStyle='#FFFEF9';
     bgCtx.fillRect(0,0,cw,ch);
 
-    // ===== LINIEN-POSITIONEN (fest definiert) =====
-    const margin=20*dpr;
-    
-    // Vertikale Positionen der Linien (von oben nach unten)
-    const topY = ch * 0.15;      // Oberlinie (Großbuchstaben/Oberlängen)
-    const midY = ch * 0.45;      // Mittellinie (x-Höhe Kleinbuchstaben)
-    const baseY = ch * 0.72;     // Grundlinie (Schreiblinie)
-    const descY = ch * 0.92;     // Unterlängen-Linie
-    
-    // Abstände berechnen
-    const upperHeight = baseY - topY;    // Höhe Großbuchstaben
-    const xHeight = baseY - midY;        // Höhe Kleinbuchstaben (x-Höhe)
-    const descHeight = descY - baseY;    // Unterlängen
+    const m=15*dpr;
+    const topY=ch*0.12,midY=ch*0.42,baseY=ch*0.70,descY=ch*0.90;
+    const upperH=baseY-topY,xH=baseY-midY,descH=descY-baseY;
 
+    // Lines
     if(state.showLines){
       bgCtx.lineWidth=2*dpr;
+      bgCtx.setLineDash([8*dpr,4*dpr]);
       
-      // Oberlinie (grün, gestrichelt) - Großbuchstaben-Oberkante
-      bgCtx.strokeStyle='rgba(123,160,138,0.7)';
-      bgCtx.setLineDash([10*dpr,5*dpr]);
-      bgCtx.beginPath();
-      bgCtx.moveTo(margin,topY);
-      bgCtx.lineTo(cw-margin,topY);
-      bgCtx.stroke();
+      bgCtx.strokeStyle='rgba(123,160,138,0.6)';
+      bgCtx.beginPath();bgCtx.moveTo(m,topY);bgCtx.lineTo(cw-m,topY);bgCtx.stroke();
       
-      // Mittellinie (blau, gestrichelt) - Kleinbuchstaben-Oberkante
-      bgCtx.strokeStyle='rgba(74,124,145,0.7)';
-      bgCtx.setLineDash([10*dpr,5*dpr]);
-      bgCtx.beginPath();
-      bgCtx.moveTo(margin,midY);
-      bgCtx.lineTo(cw-margin,midY);
-      bgCtx.stroke();
+      bgCtx.strokeStyle='rgba(74,124,145,0.6)';
+      bgCtx.beginPath();bgCtx.moveTo(m,midY);bgCtx.lineTo(cw-m,midY);bgCtx.stroke();
       
-      // Grundlinie (rot, durchgezogen) - Schreiblinie
-      bgCtx.strokeStyle='rgba(196,114,108,0.9)';
       bgCtx.setLineDash([]);
+      bgCtx.strokeStyle='rgba(196,114,108,0.85)';
       bgCtx.lineWidth=3*dpr;
-      bgCtx.beginPath();
-      bgCtx.moveTo(margin,baseY);
-      bgCtx.lineTo(cw-margin,baseY);
-      bgCtx.stroke();
-
-      // Unterlängen-Linie (grau, gestrichelt)
-      bgCtx.strokeStyle='rgba(0,0,0,0.2)';
-      bgCtx.lineWidth=2*dpr;
-      bgCtx.setLineDash([6*dpr,4*dpr]);
-      bgCtx.beginPath();
-      bgCtx.moveTo(margin,descY);
-      bgCtx.lineTo(cw-margin,descY);
-      bgCtx.stroke();
+      bgCtx.beginPath();bgCtx.moveTo(m,baseY);bgCtx.lineTo(cw-m,baseY);bgCtx.stroke();
+      
+      bgCtx.strokeStyle='rgba(0,0,0,0.15)';
+      bgCtx.lineWidth=1.5*dpr;
+      bgCtx.setLineDash([5*dpr,3*dpr]);
+      bgCtx.beginPath();bgCtx.moveTo(m,descY);bgCtx.lineTo(cw-m,descY);bgCtx.stroke();
     }
 
-    // ===== BUCHSTABE ZEICHNEN =====
+    // Letter
     if(state.showLetter){
       bgCtx.setLineDash([]);
       bgCtx.textAlign='center';
-      
-      // Buchstabenfarbe (halbtransparent zum Nachspuren)
-      bgCtx.fillStyle=letter.color+'88'; // 53% opacity
-      bgCtx.strokeStyle=letter.color;
-      bgCtx.lineWidth=2*dpr;
-      
-      // ===== GROßBUCHSTABE (links) =====
-      // Großbuchstaben gehen von Grundlinie bis Oberlinie
-      const upperFontSize = upperHeight * 1.05; // Etwas größer für optischen Ausgleich
-      bgCtx.font=`600 ${upperFontSize}px 'Nunito', sans-serif`;
       bgCtx.textBaseline='alphabetic';
-      
-      const upperX = cw * 0.28;
-      bgCtx.fillText(letter.upper, upperX, baseY);
-      bgCtx.strokeText(letter.upper, upperX, baseY);
-      
-      // ===== KLEINBUCHSTABE (rechts) =====
-      const lowerX = cw * 0.72;
-      const lowerChar = letter.lower;
-      
-      // Schriftgröße je nach Buchstabentyp
-      let lowerFontSize;
-      let lowerBaseline = baseY;
-      
-      if(ASCENDERS.has(lowerChar)){
-        // Oberlängen: gleiche Höhe wie Großbuchstaben
-        lowerFontSize = upperHeight * 1.05;
-      } else if(DESCENDERS.has(lowerChar)){
-        // Unterlängen: x-Höhe + Unterlänge
-        lowerFontSize = (xHeight + descHeight) * 0.95;
-      } else {
-        // Normale x-Höhe Buchstaben
-        lowerFontSize = xHeight * 1.4; // Optischer Ausgleich
-      }
-      
-      bgCtx.font=`600 ${lowerFontSize}px 'Nunito', sans-serif`;
-      bgCtx.fillText(lowerChar, lowerX, lowerBaseline);
-      bgCtx.strokeText(lowerChar, lowerX, lowerBaseline);
+      bgCtx.fillStyle=letter.c+'77';
+      bgCtx.strokeStyle=letter.c;
+      bgCtx.lineWidth=2.5*dpr;
 
-      // Pfeil zwischen Groß und Klein
-      bgCtx.fillStyle='rgba(0,0,0,0.25)';
-      bgCtx.font=`400 ${20*dpr}px sans-serif`;
-      bgCtx.textBaseline='middle';
-      bgCtx.fillText('→', cw*0.5, (topY+baseY)/2);
+      // Upper
+      const uSize=upperH*1.0;
+      bgCtx.font=`700 ${uSize}px Nunito,sans-serif`;
+      bgCtx.fillText(letter.u,cw*0.3,baseY);
+      bgCtx.strokeText(letter.u,cw*0.3,baseY);
+
+      // Lower
+      let lSize;
+      if(ASCENDERS.has(letter.l))lSize=upperH*1.0;
+      else if(DESCENDERS.has(letter.l))lSize=(xH+descH)*0.9;
+      else lSize=xH*1.35;
+      
+      bgCtx.font=`700 ${lSize}px Nunito,sans-serif`;
+      bgCtx.fillText(letter.l,cw*0.7,baseY);
+      bgCtx.strokeText(letter.l,cw*0.7,baseY);
     }
 
-    bgCtx.restore();
+    clearDraw();
+    updateUI();
   };
 
-  // ===== WORD MODE =====
-  const renderWordDisplay=()=>{
-    if(state.mode!=='word'){
-      wordDisplay.classList.remove('active');
-      return;
-    }
-    wordDisplay.classList.add('active');
-    const w=WORDS[state.wordIdx];
-    wordHint.textContent=`Hinweis: ${w.hint}`;
-    wordLetters.innerHTML='';
-    for(let i=0;i<w.word.length;i++){
-      const span=document.createElement('span');
-      span.className='word-letter';
-      span.textContent=w.word[i];
-      if(i<state.wordCharIdx)span.classList.add('done');
-      if(i===state.wordCharIdx)span.classList.add('current');
-      wordLetters.appendChild(span);
-    }
-  };
-
-  const getCurrentLetterIdxForWord=()=>{
-    const w=WORDS[state.wordIdx];
-    const char=w.word[state.wordCharIdx];
-    return LETTER_MAP[char.toUpperCase()]??0;
-  };
-
-  const advanceWord=()=>{
-    const w=WORDS[state.wordIdx];
-    state.wordCharIdx++;
-    if(state.wordCharIdx>=w.word.length){
-      if(!state.wordsDone.has(w.word)){
-        state.wordsDone.add(w.word);
-        addCoin(w.word.length);
-        showFeedback('🎉',`<strong>Super!</strong> "${w.word}" geschafft! ⭐ +${w.word.length}`,'success');
-      }else{
-        showFeedback('✨',`<strong>Nochmal geübt!</strong> "${w.word}" gemeistert.`,'success');
-      }
-      saveState();
-      updateProgress();
-      setTimeout(()=>{
-        state.wordIdx=(state.wordIdx+1)%WORDS.length;
-        state.wordCharIdx=0;
-        renderTask();
-      },1500);
-    }else{
-      renderWordDisplay();
-      renderLetter(getCurrentLetterIdxForWord());
-    }
-  };
-
-  // ===== RENDER TASK =====
-  const renderTask=()=>{
-    updateProgress();
-    if(state.mode==='letter'){
-      wordDisplay.classList.remove('active');
-      renderLetter(state.letterIdx);
-    }else{
-      renderWordDisplay();
-      renderLetter(getCurrentLetterIdxForWord());
-    }
-  };
-
-  // ===== DRAWING =====
-  const pushUndo=()=>{
-    try{
-      const snap=drawCtx.getImageData(0,0,drawCanvas.width,drawCanvas.height);
-      state.undoStack.push(snap);
-      if(state.undoStack.length>UNDO_MAX)state.undoStack.shift();
-    }catch{}
-  };
-
-  const clearDrawing=(hard=false)=>{
-    drawCtx.save();
-    drawCtx.setTransform(1,0,0,1,0,0);
+  // Drawing
+  const clearDraw=()=>{
     drawCtx.clearRect(0,0,drawCanvas.width,drawCanvas.height);
-    drawCtx.restore();
-    if(hard)state.undoStack=[];
+    state.undoStack=[];
   };
 
-  const setBrushStyle=()=>{
+  const pushUndo=()=>{
+    state.undoStack.push(drawCtx.getImageData(0,0,drawCanvas.width,drawCanvas.height));
+    if(state.undoStack.length>10)state.undoStack.shift();
+  };
+
+  const setBrush=()=>{
     drawCtx.lineCap='round';
     drawCtx.lineJoin='round';
     drawCtx.lineWidth=state.brushSize*dpr;
-    if(state.isEraser){
-      drawCtx.globalCompositeOperation='destination-out';
-      drawCtx.strokeStyle='rgba(0,0,0,1)';
-    }else{
-      drawCtx.globalCompositeOperation='source-over';
-      drawCtx.strokeStyle=state.brushColor;
-    }
+    drawCtx.strokeStyle=state.brushColor;
   };
 
-  const getPos=(e)=>{
-    const rect=drawCanvas.getBoundingClientRect();
-    return{x:(e.clientX-rect.left)*dpr,y:(e.clientY-rect.top)*dpr};
+  const getPos=e=>{
+    const r=drawCanvas.getBoundingClientRect();
+    return{x:(e.clientX-r.left)*dpr,y:(e.clientY-r.top)*dpr};
   };
 
-  const beginDraw=(e)=>{
+  drawCanvas.addEventListener('pointerdown',e=>{
+    drawCanvas.setPointerCapture(e.pointerId);
     state.painting=true;
-    state.lastPos=getPos(e);
     pushUndo();
-    setBrushStyle();
+    setBrush();
+    const p=getPos(e);
     drawCtx.beginPath();
-    drawCtx.moveTo(state.lastPos.x,state.lastPos.y);
-    // Punkt zeichnen für Klick ohne Bewegung
-    drawCtx.lineTo(state.lastPos.x+0.1,state.lastPos.y+0.1);
+    drawCtx.moveTo(p.x,p.y);
+    drawCtx.lineTo(p.x+0.1,p.y);
     drawCtx.stroke();
-  };
+  });
 
-  const moveDraw=(e)=>{
+  drawCanvas.addEventListener('pointermove',e=>{
     if(!state.painting)return;
     const p=getPos(e);
     drawCtx.lineTo(p.x,p.y);
     drawCtx.stroke();
     drawCtx.beginPath();
     drawCtx.moveTo(p.x,p.y);
-    state.lastPos=p;
-  };
+  });
 
-  const endDraw=()=>{
-    state.painting=false;
-    state.lastPos=null;
-  };
-
-  drawCanvas.addEventListener('pointerdown',e=>{drawCanvas.setPointerCapture(e.pointerId);beginDraw(e)});
-  drawCanvas.addEventListener('pointermove',moveDraw);
+  const endDraw=()=>state.painting=false;
   drawCanvas.addEventListener('pointerup',endDraw);
   drawCanvas.addEventListener('pointercancel',endDraw);
   drawCanvas.addEventListener('pointerleave',endDraw);
 
-  // ===== SCORING (vereinfacht - prüft ob genug gezeichnet wurde) =====
-  const checkDrawing=()=>{
-    const img=drawCtx.getImageData(0,0,drawCanvas.width,drawCanvas.height).data;
-    let drawn=0;
-    for(let i=3;i<img.length;i+=4){
-      if(img[i]>20)drawn++;
-    }
-    const totalPixels=drawCanvas.width*drawCanvas.height;
-    const coverage=drawn/totalPixels*100;
-    return{coverage:coverage.toFixed(1),drawn};
+  // Check if drawn
+  const hasDrawn=()=>{
+    const d=drawCtx.getImageData(0,0,drawCanvas.width,drawCanvas.height).data;
+    let c=0;
+    for(let i=3;i<d.length;i+=4)if(d[i]>20)c++;
+    return c/(drawCanvas.width*drawCanvas.height)>0.003;
   };
 
-  // ===== MARK DONE =====
-  const markDone=()=>{
-    const check=checkDrawing();
-    if(check.coverage<0.5){
-      showFeedback('💡','<strong>Noch nicht genug!</strong> Mal den Buchstaben nach.','error');
+  // Events
+  $('#prev-btn').onclick=()=>{state.idx=(state.idx-1+LETTERS.length)%LETTERS.length;setInt(LS.idx,state.idx);render()};
+  $('#next-btn').onclick=()=>{state.idx=(state.idx+1)%LETTERS.length;setInt(LS.idx,state.idx);render()};
+
+  $('#undo-btn').onclick=()=>{
+    if(state.undoStack.length){
+      drawCtx.putImageData(state.undoStack.pop(),0,0);
+    }
+  };
+
+  $('#clear-btn').onclick=()=>{
+    clearDraw();
+    showToast('🧼 Gelöscht');
+  };
+
+  $('#toggle-letter').onclick=()=>{
+    state.showLetter=!state.showLetter;
+    $('#toggle-letter-box').classList.toggle('on',state.showLetter);
+    $('#toggle-letter-box').textContent=state.showLetter?'✓':'';
+    render();
+  };
+
+  $('#toggle-lines').onclick=()=>{
+    state.showLines=!state.showLines;
+    $('#toggle-lines-box').classList.toggle('on',state.showLines);
+    $('#toggle-lines-box').textContent=state.showLines?'✓':'';
+    render();
+  };
+
+  $$('.color-dot').forEach(dot=>{
+    dot.onclick=()=>{
+      $$('.color-dot').forEach(d=>d.classList.remove('active'));
+      dot.classList.add('active');
+      state.brushColor=dot.dataset.color;
+    };
+  });
+
+  $('#brush-size').oninput=e=>{
+    state.brushSize=parseInt(e.target.value,10);
+  };
+
+  $('#done-btn').onclick=()=>{
+    if(!hasDrawn()){
+      showToast('✏️ Erst nachspuren!','error');
       return;
     }
-
-    if(state.mode==='letter'){
-      const letter=LETTERS[state.letterIdx];
-      if(!state.lettersDone.has(letter.id)){
-        state.lettersDone.add(letter.id);
-        addCoin(1);
-        showFeedback('✅',`<strong>${letter.upper} ${letter.lower} geschafft!</strong> ⭐ +1`,'success');
-      }else{
-        showFeedback('✨',`<strong>Nochmal geübt!</strong> ${letter.upper} ${letter.lower}`,'success');
-      }
-      saveState();
-      updateProgress();
-      setTimeout(()=>{
-        state.letterIdx=(state.letterIdx+1)%LETTERS.length;
-        renderTask();
-      },1000);
+    
+    const letter=LETTERS[state.idx];
+    const isNew=!state.done.has(letter.id);
+    
+    if(isNew){
+      state.done.add(letter.id);
+      setSet(LS.done,state.done);
+      const coins=getInt(LS.coins,0)+1;
+      setInt(LS.coins,coins);
+      showToast(`⭐ ${letter.u} geschafft! +1`,'success');
     }else{
-      advanceWord();
+      showToast(`✨ ${letter.u} geübt!`,'success');
     }
+    
+    // Next letter
+    setTimeout(()=>{
+      state.idx=(state.idx+1)%LETTERS.length;
+      setInt(LS.idx,state.idx);
+      render();
+    },800);
   };
-
-  // ===== EVENT HANDLERS =====
-  // Mode Tabs
-  $$('.mode-tab').forEach(tab=>{
-    tab.addEventListener('click',()=>{
-      $$('.mode-tab').forEach(t=>t.classList.remove('active'));
-      tab.classList.add('active');
-      state.mode=tab.dataset.mode;
-      state.wordCharIdx=0;
-      renderTask();
-    });
-  });
-
-  // Letter Toggle
-  $('#toggle-letter').addEventListener('click',()=>{
-    state.showLetter=!state.showLetter;
-    $('#toggle-letter').classList.toggle('on',state.showLetter);
-    renderTask();
-  });
-
-  // Lines Toggle
-  $('#toggle-lines').addEventListener('click',()=>{
-    state.showLines=!state.showLines;
-    $('#toggle-lines').classList.toggle('on',state.showLines);
-    renderTask();
-  });
-
-  // Eraser Toggle
-  $('#toggle-eraser').addEventListener('click',()=>{
-    state.isEraser=!state.isEraser;
-    $('#toggle-eraser').classList.toggle('on',state.isEraser);
-    setBrushStyle();
-  });
-
-  // Brush Size
-  $('#brush-size').addEventListener('input',e=>{
-    state.brushSize=parseInt(e.target.value,10)||12;
-    $('#brush-val').textContent=state.brushSize;
-    setBrushStyle();
-  });
-
-  // Color Swatches
-  $$('.swatch').forEach(sw=>{
-    sw.addEventListener('click',()=>{
-      $$('.swatch').forEach(s=>s.classList.remove('active'));
-      sw.classList.add('active');
-      state.brushColor=sw.dataset.color;
-      state.isEraser=false;
-      $('#toggle-eraser').classList.remove('on');
-      setBrushStyle();
-    });
-  });
-
-  // Navigation
-  $('#btn-prev').addEventListener('click',()=>{
-    if(state.mode==='letter'){
-      state.letterIdx=(state.letterIdx-1+LETTERS.length)%LETTERS.length;
-    }else{
-      state.wordIdx=(state.wordIdx-1+WORDS.length)%WORDS.length;
-      state.wordCharIdx=0;
-    }
-    renderTask();
-  });
-
-  $('#btn-next').addEventListener('click',()=>{
-    if(state.mode==='letter'){
-      state.letterIdx=(state.letterIdx+1)%LETTERS.length;
-    }else{
-      state.wordIdx=(state.wordIdx+1)%WORDS.length;
-      state.wordCharIdx=0;
-    }
-    renderTask();
-  });
-
-  $('#btn-random').addEventListener('click',()=>{
-    if(state.mode==='letter'){
-      state.letterIdx=Math.floor(Math.random()*LETTERS.length);
-    }else{
-      state.wordIdx=Math.floor(Math.random()*WORDS.length);
-      state.wordCharIdx=0;
-    }
-    renderTask();
-  });
-
-  $('#btn-undo').addEventListener('click',()=>{
-    if(state.undoStack.length){
-      const snap=state.undoStack.pop();
-      if(snap)drawCtx.putImageData(snap,0,0);
-    }
-  });
-
-  $('#btn-clear').addEventListener('click',()=>{
-    clearDrawing(false);
-    showFeedback('🧼','<strong>Gelöscht.</strong> Fang nochmal an!');
-  });
-
-  $('#btn-check').addEventListener('click',()=>{
-    const check=checkDrawing();
-    if(check.coverage<0.3){
-      showFeedback('🎯','<strong>Mal noch mehr!</strong> Der Buchstabe braucht mehr Farbe.');
-    }else if(check.coverage<1){
-      showFeedback('👍','<strong>Guter Anfang!</strong> Noch etwas mehr nachspuren.');
-    }else{
-      showFeedback('🏆',`<strong>Super!</strong> Du hast gut nachgespurt!`,'success');
-    }
-  });
-
-  $('#btn-done').addEventListener('click',markDone);
-
-  $('#btn-help').addEventListener('click',()=>{
-    showFeedback('💡',`<strong>So geht's:</strong><br>
-      1️⃣ Spur den Buchstaben auf den Linien nach<br>
-      2️⃣ 👁️ Buchstabe ein/ausblenden zum Üben<br>
-      3️⃣ 📏 Linien als Orientierung nutzen<br>
-      4️⃣ ✅ Fertig speichert & gibt ⭐<br><br>
-      <strong>Linien:</strong><br>
-      🔴 Grundlinie = hier schreiben<br>
-      🔵 Mittellinie = Kleinbuchstaben-Höhe<br>
-      🟢 Oberlinie = Großbuchstaben-Höhe`);
-  });
 
   // Resize
   window.addEventListener('resize',()=>{
-    dpr=Math.max(1,Math.min(3,window.devicePixelRatio||1));
-    renderTask();
+    dpr=Math.min(2,window.devicePixelRatio||1);
+    render();
   });
 
-  // ===== INIT =====
-  const init=()=>{
-    updateCoins();
-    $('#brush-val').textContent=state.brushSize;
-    setBrushStyle();
-    renderTask();
-  };
-
-  init();
-  console.log('✅ Alphabet Nachspuren v2 geladen.');
+  // Init
+  render();
+  console.log('✅ Alphabet Nachspuren v3');
 })();
-  </script>
+</script>
 </body>
 </html>
